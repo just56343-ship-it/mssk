@@ -9,8 +9,13 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static(__dirname)); // ✅ بيقرأ الملفات من نفس فولدر server.js
+app.use(express.static(__dirname)); // 
 
+app.use(express.static(__dirname));
+
+app.get('/', (req, res) => {
+  res.redirect('/logout.html');
+});
 // ===== DATA FILES =====
 const DATA_DIR = path.join(__dirname, 'data');
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR);
