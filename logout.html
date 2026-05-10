@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login | MSSK Pharmacy</title>
+  <link href="https://fonts.googleapis.com/css?family=Material+Icons" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+    body { height: 100vh; display: flex; justify-content: center; align-items: center; background: linear-gradient(135deg, #0a66c2, #0abbc2); }
+    .login-container { width: 350px; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); text-align: center; animation: fadeIn 0.5s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .logo { width: 80px; margin-bottom: 10px; border-radius: 50%; }
+    h2 { margin-bottom: 20px; color: #0a66c2; }
+    .input-group { position: relative; margin-bottom: 15px; }
+    .input-group input { width: 100%; padding: 12px 40px 12px 12px; border-radius: 8px; border: 1px solid #ccc; outline: none; transition: 0.3s; font-size: 14px; }
+    .input-group input:focus { border-color: #0a66c2; box-shadow: 0 0 5px rgba(10,102,194,0.3); }
+    .input-group i { position: absolute; right: 10px; top: 10px; color: #888; }
+    .login-btn { width: 100%; padding: 12px; border: none; background: #0a66c2; color: white; font-size: 15px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
+    .login-btn:hover { background: #084c96; }
+    .extra-links { margin-top: 15px; font-size: 13px; }
+    .extra-links a { color: #0a66c2; text-decoration: none; }
+    .error { color: red; font-size: 13px; margin-bottom: 10px; display: none; }
+    .loading { display: none; margin-bottom: 10px; color: #0a66c2; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <img src="assets/images/pharmacy2.jpeg" class="logo" onerror="this.style.display='none'">
+    <h2>Welcome to MSSK</h2>
+    <div class="error" id="error-msg">Invalid username or password</div>
+    <div class="loading" id="loading-msg">⏳ Logging in...</div>
+    <div class="input-group">
+      <input type="text" id="username" placeholder="Username">
+      <i class="material-icons">person</i>
+    </div>
+    <div class="input-group">
+      <input type="password" id="password" placeholder="Password">
+      <i class="material-icons">lock</i>
+    </div>
+    <button class="login-btn" onclick="login()">Login</button>
+    <div class="extra-links">
+      <p style="margin-top:10px; color:#888; font-size:12px;">Use: admin / 1234 &nbsp;|&nbsp; user / 1234</p>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = 'http://localhost:3000/api';
+
+    async function login() {
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const errorMsg = document.getElementById("error-msg");
+      const loadingMsg = document.getElementById("loading-msg");
+
+      if (!username || !password) {
+        errorMsg.textContent = "Please enter username and password";
+        errorMsg.style.display = "block";
+        return;
+      }
+
+      errorMsg.style.display = "none";
+      loadingMsg.style.display = "block";
+
+      try {
+        const response = await fetch(`${API_URL}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await response.json();
+        loadingMsg.style.display = "none";
+
+        if (data.success) {
+          localStorage.setItem("user", JSON.stringify(data.user));
+          window.location.href = data.user.role === "admin" ? "admin.html" : "index.html";
+        } else {
+          errorMsg.textContent = data.message || "Invalid username or password";
+          errorMsg.style.display = "block";
+        }
+      } catch (e) {
+        loadingMsg.style.display = "none";
+        errorMsg.textContent = "❌ Cannot connect to server. Make sure node server.js is running!";
+        errorMsg.style.display = "block";
+      }
+    }
+
+    document.addEventListener("keypress", e => { if (e.key === "Enter") login(); });
+  </script>
+</body>
+</html>

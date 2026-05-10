@@ -1,0 +1,287 @@
+<!doctype html>
+<html>
+  <head>
+    <link rel="stylesheet" href="assets/style/style.css" />
+    <link
+      href="https://fonts.googleapis.com/css?family=Material+Icons|Material+Icons+Outlined|Material+Icons+Two+Tone|Material+Icons+Round|Material+Icons+Sharp"
+      rel="stylesheet"
+    />
+    <title>MSSK | Pharmacy</title>
+    <style>
+      .product-item.highlight {
+        border: 2px solid red;
+        padding: 5px;
+        transition: all 0.5s ease;
+      }
+    </style>
+  
+</head>
+  <body>
+    <header>
+      <div class="left-section">
+        <i class="material-icons" id="menu-btn">menu</i>
+        <a href="index.html">
+           <img src="assets/images/pharmacy2.jpeg" alt="MSSK Logo">
+         </a>
+      </div>
+      <div class="mid-section">
+        <form>
+          <input
+            type="text"
+            placeholder="Search medicines..."
+            id="search-input"
+            aria-label="Search medicines"
+          />
+          <button type="submit"><i class="material-icons">search</i></button>
+          <div class="mic" id="mic-btn"><i class="material-icons">mic</i></div>
+        </form>
+      </div>
+       <div class="right-section">
+        <a href="#" id="cart-btn" class="notif-wrapper">
+          <i class="material-icons">shopping_cart</i>
+          <span class="notif-count" id="cart-count">0</span>
+        </a>
+        <div class="cart-box" id="cart-box">
+          <h4>Your Cart</h4>
+          <div id="cart-items"></div>
+          <p id="cart-empty">Your cart is empty</p>
+          <button id="checkout-btn">Checkout</button>
+        </div>
+        <a href="#" id="notif-btn" class="notif-wrapper">
+          <i class="material-icons">notifications</i>
+          <span class="notif-count" id="notif-count">3</span>
+        </a>
+        <div class="notif-box" id="notif-box"></div>
+        <a href="#" id="account-btn"
+          ><i class="material-icons">account_circle</i></a
+        >
+      </div>
+    </header>
+
+    <div class="account-box" id="account-box">
+      <p id="account-msg">Hi there!</p>
+      <button id="logout-btn" style="display: none; width: 100%; padding: 8px; margin-top: 10px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer;">
+        <i class="material-icons" style="font-size: 18px; vertical-align: middle; margin-right: 5px;">logout</i>
+        Log Out
+      </button>
+    </div>
+
+    <div class="content-area">
+      <aside id="sidebar" class="hide">
+        <nav>
+          <a href="index.html" class="nav-link active"
+            ><i class="material-icons">home</i><span>Home</span></a
+          >
+          <a href="favorite.html" class="nav-link"
+            ><i class="material-icons">favorite</i><span>Favorite</span></a
+          >
+          <hr />
+          <a href="#" id="contact-btn" class="nav-link"
+            ><i class="material-icons">call</i><span>Contact Us</span></a
+          >
+          <div id="contact-space" class="hide">
+            <h3>Contact Us</h3>
+            <p>
+              You can reach us at:
+              <a
+                href="https://chat.whatsapp.com/GPGxHgjs4iT6aSeLt08cys?mode=gi_t"
+                >Join my group</a
+              >
+            </p>
+            <p>Or call: <a href="tel:+201270191608">20 12 70191608</a></p>
+          </div>
+          <a href="logout.html" class="nav-link"
+            ><i class="material-icons">logout</i><span>Log Out</span></a
+          >
+        </nav>
+      </aside>
+
+      <main>
+        <section class="products-page">
+          <h2>Our Products</h2>
+          <hr />
+
+          <!-- Example Product Row -->
+          <h3 id="cosmetics" class="category-title">Cosmetics:</h3>
+          <div class="product-row">
+            <div class="product-item" id="product-Cosmetics-Kit-1">
+              <img src="assets/images/cos2.jpg" alt="cosmetics 1" />
+              <h4>Cosmetics Kit 1</h4>
+              <p>550 L.E</p>
+              <button class="add-to-cart">Add to Cart</button>
+              <button class="add-to-favorite">
+                <i class="material-icons">favorite_border</i>
+              </button>
+            </div>
+            <div class="product-item" id="product-Cosmetics-Kit-2">
+              <img src="assets/images/cos1.jpg" alt="Cosmetics 2" />
+              <h4>Cosmetics Kit 2</h4>
+              <p>450 L.E</p>
+              <button class="add-to-cart">Add to Cart</button>
+              <button class="add-to-favorite">
+                <i class="material-icons">favorite_border</i>
+              </button>
+            </div>
+            <div class="product-item" id="product-Cosmetics-Kit-3">
+              <img src="assets/images/cos3.jpg" alt="Cosmetics 3" />
+              <h4>Cosmetics Kit 3</h4>
+              <p>357 L.E</p>
+              <button class="add-to-cart">Add to Cart</button>
+              <button class="add-to-favorite">
+                <i class="material-icons">favorite_border</i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Repeat all products with unique IDs (replace spaces with '-') -->
+
+          <!-- Row 2: Mom & Baby -->
+          <h3 id="mom-baby" class="category-title">Mom & Baby:</h3>
+          <div class="product-row">
+            <div class="product-item">
+              <img src="assets/images/baby1.jpg" alt="Mom & Baby 1" />
+              <h4>Mom & Baby Set 1</h4>
+              <p>100 L.E</p>
+              <button class="add-to-cart">Add to Cart</button>
+              <button class="add-to-favorite">
+                <i class="material-icons">favorite_border</i>
+              </button>
+            </div>
+            <div class="product-item">
+              <img src="assets/images/baby2.jpg" alt="Mom & Baby 2" />
+              <h4>Mom & Baby Set 2</h4>
+              <p>500 L.E</p>
+              <button class="add-to-cart">Add to Cart</button>
+              <button class="add-to-favorite">
+                <i class="material-icons">favorite_border</i>
+              </button>
+            </div>
+            <div class="product-item">
+              <img src="assets/images/baby3.jpg" alt="Mom & Baby 3" />
+              <h4>Mom & Baby Set 3</h4>
+              <p>400 L.E</p>
+              <button class="add-to-cart">Add to Cart</button>
+              <button class="add-to-favorite">
+                <i class="material-icons">favorite_border</i>
+              </button>
+            </div>
+          </div>
+          <hr />
+          <!-- Row 3: First Aid -->
+          <h3 id="first-aid" class="category-title">First Aid:</h3>
+          <div class="product-row">
+            <div class="product-item">
+              <img src="assets/images/aid1.jpg" alt="First Aid 1" />
+              <h4>First Aid Kit 1</h4>
+              <p>28000 L.E</p>
+              <button class="add-to-cart">Add to Cart</button>
+              <button class="add-to-favorite">
+                <i class="material-icons">favorite_border</i>
+              </button>
+            </div>
+            <div class="product-item">
+              <img src="assets/images/aid22.jpg" alt="First Aid 2" />
+              <h4>First Aid Kit 2</h4>
+              <p>100 L.E</p>
+              <button class="add-to-cart">Add to Cart</button>
+              <button class="add-to-favorite">
+                <i class="material-icons">favorite_border</i>
+              </button>
+            </div>
+            <div class="product-item">
+              <img src="assets/images/aid3.jpg" alt="First Aid 3" />
+              <h4>First Aid Kit 3</h4>
+              <p>265 L.E</p>
+              <button class="add-to-cart">Add to Cart</button>
+              <button class="add-to-favorite">
+                <i class="material-icons">favorite_border</i>
+              </button>
+            </div>
+          </div>
+          <hr />
+          <!-- Row 3: medicines -->
+          <h3 id="medicines" class="category-title">Medicines:</h3>
+          <div class="product-row">
+            <div class="product-item">
+              <img src="assets/images/pil1.jpeg" alt="pil 1" />
+              <h4>pil 1</h4>
+              <p>40L.E</p>
+              <button class="add-to-cart">Add to Cart</button>
+              <button class="add-to-favorite">
+                <i class="material-icons">favorite_border</i>
+              </button>
+            </div>
+            <div class="product-item">
+              <img src="assets/images/pil2.jpeg" alt="pil 2" />
+              <h4>pil 2</h4>
+              <p>80 L.E</p>
+              <button class="add-to-cart">Add to Cart</button>
+              <button class="add-to-favorite">
+                <i class="material-icons">favorite_border</i>
+              </button>
+            </div>
+            <div class="product-item">
+              <img src="assets/images/pil3.jpeg" alt="pil 3" />
+              <h4>pil 3</h4>
+              <p>100L.E</p>
+              <button class="add-to-cart">Add to Cart</button>
+              <button class="add-to-favorite">
+                <i class="material-icons">favorite_border</i>
+              </button>
+            </div>
+          </div>
+          <hr />
+          <!-- Row 5: vitamns -->
+          <h3 id="vitamns" class="category-title">Vitamns:</h3>
+          <div class="product-row">
+            <div class="product-item">
+              <img src="assets/images/v1.jpeg" alt="Vitamn 1" />
+              <h4>Vitamn 1</h4>
+              <p>650 L.E</p>
+              <button class="add-to-cart">Add to Cart</button>
+              <button class="add-to-favorite">
+                <i class="material-icons">favorite_border</i>
+              </button>
+            </div>
+            <div class="product-item">
+              <img src="assets/images/v2.jpeg" alt="Vitamn 2" />
+              <h4>Vitamn 2</h4>
+              <p>1750L.E</p>
+              <button class="add-to-cart">Add to Cart</button>
+              <button class="add-to-favorite">
+                <i class="material-icons">favorite_border</i>
+              </button>
+            </div>
+            <div class="product-item">
+              <img src="assets/images/v3.jpeg" alt="Vitamn 3" />
+              <h4>Vitamn 3</h4>
+              <p>899L.E</p>
+              <button class="add-to-cart">Add to Cart</button>
+              <button class="add-to-favorite">
+                <i class="material-icons">favorite_border</i>
+              </button>
+            </div>
+          </div>
+          <hr />
+        </section>
+      </main>
+    </div>
+
+    <script src="assets/scripts/script.js"></script>
+
+    <script>
+      // Scroll to product if clicked from favorites
+      window.addEventListener("DOMContentLoaded", function () {
+        if (window.location.hash) {
+          let id = window.location.hash.substring(1); // remove '#'
+          let product = document.getElementById(id);
+          if (product) {
+            product.scrollIntoView({ behavior: "smooth", block: "start" });
+            product.classList.add("highlight");
+            setTimeout(() => product.classList.remove("highlight"), 2000);
+          }
+        }
+      });
+    </script>
+  </body>
+</html>

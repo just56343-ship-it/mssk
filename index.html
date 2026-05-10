@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="assets/style/style.css">
+  <link href="https://fonts.googleapis.com/css?family=Material+Icons|Material+Icons+Outlined|Material+Icons+Two+Tone|Material+Icons+Round|Material+Icons+Sharp" rel="stylesheet">
+  <title>MSSK | pharmacy</title>
+
+</head>
+<body>
+  <header>
+    
+
+    
+
+    <div class="left-section">
+      <i class="material-icons" id="menu-btn">menu</i>
+      <a href="index.html">
+        <img src="assets/images/pharmacy2.jpeg" alt="MSSK Logo">
+      </a>
+    </div>
+    <div class="mid-section">
+      <form>
+        <input type="text" placeholder="Search medicines..." id="search-input" aria-label="Search medicines">
+        <button type="submit"><i class="material-icons">search</i></button>
+        <div class="mic" id="mic-btn"><i class="material-icons">mic</i></div>
+      </form>
+    </div>
+    <div class="right-section">
+      <a href="#" id="cart-btn" class="notif-wrapper">
+        <i class="material-icons">shopping_cart</i>
+        <span class="notif-count" id="cart-count">0</span>
+      </a>
+      <div class="cart-box" id="cart-box">
+        <h4>Your Cart</h4>
+        <div id="cart-items"></div>
+        <p id="cart-empty">Your cart is empty</p>
+        <button id="checkout-btn">Checkout</button>
+      </div>
+      <a href="#" id="notif-btn" class="notif-wrapper">
+        <i class="material-icons">notifications</i>
+        <span class="notif-count" id="notif-count">3</span>
+      </a>
+      <div class="notif-box" id="notif-box"></div>
+      <a href="#" id="account-btn"><i class="material-icons">account_circle</i></a>
+    </div>
+  </header>
+
+  <div class="account-box" id="account-box">
+    <p id="account-msg">Hi there!</p>
+    <button id="logout-btn" style="display: none; width: 100%; padding: 8px; margin-top: 10px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer;">
+      <i class="material-icons" style="font-size: 18px; vertical-align: middle; margin-right: 5px;">logout</i>
+      Log Out
+    </button>
+  </div>
+
+  <div class="content-area">
+    <aside id="sidebar" class="hide">
+      <nav>
+        <a href="#" class="nav-link active" data-section="home" id="home-link">
+          <i class="material-icons">home</i>
+          <span>Home</span>
+        </a>
+        <a href="favorite.html" class="nav-link">
+          <i class="material-icons">favorite</i>
+          <span>Favorite</span>
+        </a>
+        <hr>
+        <a href="#" id="contact-btn" class="nav-link">
+          <i class="material-icons">call</i>
+          <span>Contact Us</span>
+        </a>
+        <div id="contact-space" class="hide">
+          <h3>Contact Us</h3>
+          <p>You can reach us at: <a href="https://chat.whatsapp.com/GPGxHgjs4iT6aSeLt08cys?mode=gi_t">Open this link to join my group</a></p>
+          <p>Or call: <a href="tel:+20 12 70191608">20 12 70191608</a></p>
+        </div>
+        <a href="logout.html" class="nav-link">
+          <i class="material-icons">logout</i>
+          <span>Log Out</span>
+        </a>
+      </nav>
+    </aside>
+
+    <main>
+      <section class="hero">
+        <div class="hero-left">
+          <h2 class="Cursive">MSSK Care</h2>
+          <p>Because your health matters the most.</p>
+          <a href="products.html">
+            <button>Shop Now</button>
+          </a>
+        </div>
+      </section>
+
+      <section class="categories">
+        <h2>Shop by Category</h2>
+        <div class="category-row">
+          <a href="products.html#cosmetics" class="category-item">
+            <img src="assets/images/cosmetics main.jpeg" alt="Cosmetics">
+            <h4>Cosmetics</h4>
+          </a>
+          <a href="products.html#mom-baby" class="category-item">
+            <img src="assets/images/mom and babys main .jpg" alt="Mom & Baby">
+            <h4>Mom & Baby</h4>
+          </a>
+          <a href="products.html#first-aid" class="category-item">
+            <img src="assets/images/first aid main.jpeg" alt="First Aid">
+            <h4>First Aid</h4>
+          </a>
+          <a href="products.html#medicines" class="category-item">
+            <img src="assets/images/medicines main.jpeg" alt="Medicines">
+            <h4>Medicines</h4>
+          </a>
+          <a href="products.html#vitamns" class="category-item">
+            <img src="assets/images/vitamins main.jpeg" alt="Vitamns">
+            <h4>Vitamns</h4>
+          </a>
+        </div>
+      </section>
+
+      <section class="why-choose-us">
+        <h2>Why Choose Us?</h2>
+        <div class="features">
+          <div class="feature">
+            <i class="material-icons">local_shipping</i>
+            <h4>Fast Delivery</h4>
+            <p><h4>Get your medicines delivered quickly at your doorstep.</h4></p>
+          </div>
+          <div class="feature">
+            <i class="material-icons">verified</i>
+            <h4>100% Original</h4>
+            <p><h4>All products are genuine and carefully verified.</h4></p>
+          </div>
+          <div class="feature">
+            <i class="material-icons">support_agent</i>
+            <h4>24/7 Support</h4>
+            <p><h4>Our team is here to help you anytime, anywhere.</h4></p>
+          </div>
+        </div>
+      </section>
+
+      <section class="about-us">
+        <h2>About Us</h2>
+        <p>MSSK Pharmacy is dedicated to providing high-quality healthcare products with fast delivery and trusted service. Learn more about us through the links below.</p>
+        <div class="about-links">
+          <a href="#">Our Story</a>
+          <a href="#">Our Mission</a>
+          <a href="#">Privacy Policy</a>
+          <a href="#">Terms & Conditions</a>
+          <a href="#">Careers</a>
+          <a href="#">Support Center</a>
+          <a href="#">FAQs</a>
+          <a href="#">Contact Team</a>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="assets/scripts/script.js"></script>
+</body>
+</html>
