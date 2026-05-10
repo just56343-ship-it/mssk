@@ -1,239 +1,216 @@
-const express = require('express');
-const cors = require('cors');
-const fs = require('fs');
-const path = require('path');
+// ===== AUTH HELPERS =====
+function getCurrentUser() {
+  try { return JSON.parse(localStorage.getItem("user")) || null; }
+  catch { return null; }
+}
+function isAdmin() { const u = getCurrentUser(); return u && u.role === "admin"; }
+function isLoggedIn() { return getCurrentUser() !== null; }
 
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-// Middleware
-app.use(cors());
-app.use(express.json());
-app.use(express.static(__dirname));
-
-app.get('/', (req, res) => {
-  res.redirect('/logout.html');
-}); // ✅ بيقرأ الملفات من نفس فولدر server.js
-
-// ===== DATA FILES =====
-const DATA_DIR = path.join(__dirname, 'data');
-if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR);
-
-const USERS_FILE = path.join(DATA_DIR, 'users.json');
-const PRODUCTS_FILE = path.join(DATA_DIR, 'products.json');
-const ORDERS_FILE = path.join(DATA_DIR, 'orders.json');
-const CARTS_FILE = path.join(DATA_DIR, 'carts.json');
-const FAVORITES_FILE = path.join(DATA_DIR, 'favorites.json');
-
-function readJSON(filePath, defaultValue = []) {
-  if (!fs.existsSync(filePath)) {
-    fs.writeFileSync(filePath, JSON.stringify(defaultValue, null, 2));
-    return defaultValue;
-  }
-  try { return JSON.parse(fs.readFileSync(filePath, 'utf8')); }
-  catch { return defaultValue; }
+// ===== SIDEBAR =====
+let menuBtn = document.getElementById("menu-btn");
+let sidebar = document.getElementById("sidebar");
+if (menuBtn && sidebar) {
+  menuBtn.addEventListener("click", () => sidebar.classList.toggle("hide"));
 }
 
-function writeJSON(filePath, data) {
-  fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
-}
+// ===== ACCOUNT DROPDOWN =====
+let accountBtn = document.getElementById("account-btn");
+let accountBox = document.getElementById("account-box");
+let accountMsg = document.getElementById("account-msg");
+let logoutBtn = document.getElementById("logout-btn");
 
-// ===== DEFAULT DATA =====
-function initData() {
-  if (!fs.existsSync(USERS_FILE)) {
-    writeJSON(USERS_FILE, [
-      { id: 1, username: 'admin', password: '1234', name: 'Administrator', email: 'admin@mssk.com', role: 'admin' },
-      { id: 2, username: 'user', password: '1234', name: 'Demo User', email: 'user@example.com', role: 'customer' }
-    ]);
-  }
-  if (!fs.existsSync(PRODUCTS_FILE)) {
-    writeJSON(PRODUCTS_FILE, [
-      { id: 1, name: 'Cosmetics Kit 1', category: 'Cosmetics', price: 550, stock: 20, image: 'assets/images/cos2.jpg' },
-      { id: 2, name: 'Cosmetics Kit 2', category: 'Cosmetics', price: 450, stock: 15, image: 'assets/images/cos1.jpg' },
-      { id: 3, name: 'Cosmetics Kit 3', category: 'Cosmetics', price: 357, stock: 30, image: 'assets/images/cos3.jpg' },
-      { id: 4, name: 'Mom & Baby Set 1', category: 'Mom & Baby', price: 100, stock: 50, image: 'assets/images/baby1.jpg' },
-      { id: 5, name: 'Mom & Baby Set 2', category: 'Mom & Baby', price: 500, stock: 25, image: 'assets/images/baby2.jpg' },
-      { id: 6, name: 'Mom & Baby Set 3', category: 'Mom & Baby', price: 400, stock: 40, image: 'assets/images/baby3.jpg' },
-      { id: 7, name: 'First Aid Kit 1', category: 'First Aid', price: 28000, stock: 5, image: 'assets/images/aid1.jpg' },
-      { id: 8, name: 'First Aid Kit 2', category: 'First Aid', price: 100, stock: 100, image: 'assets/images/aid22.jpg' },
-      { id: 9, name: 'First Aid Kit 3', category: 'First Aid', price: 265, stock: 60, image: 'assets/images/aid3.jpg' },
-      { id: 10, name: 'Pil 1', category: 'Medicines', price: 40, stock: 200, image: 'assets/images/pil1.jpeg' },
-      { id: 11, name: 'Pil 2', category: 'Medicines', price: 80, stock: 150, image: 'assets/images/pil2.jpeg' },
-      { id: 12, name: 'Pil 3', category: 'Medicines', price: 100, stock: 120, image: 'assets/images/pil3.jpeg' },
-      { id: 13, name: 'Vitamin 1', category: 'Vitamins', price: 650, stock: 80, image: 'assets/images/v1.jpeg' },
-      { id: 14, name: 'Vitamin 2', category: 'Vitamins', price: 1750, stock: 30, image: 'assets/images/v2.jpeg' },
-      { id: 15, name: 'Vitamin 3', category: 'Vitamins', price: 899, stock: 45, image: 'assets/images/v3.jpeg' }
-    ]);
-  }
-  if (!fs.existsSync(ORDERS_FILE)) writeJSON(ORDERS_FILE, []);
-  if (!fs.existsSync(CARTS_FILE)) writeJSON(CARTS_FILE, {});
-  if (!fs.existsSync(FAVORITES_FILE)) writeJSON(FAVORITES_FILE, {});
-}
-initData();
-
-// ===== AUTH =====
-app.post('/api/auth/login', (req, res) => {
-  const { username, password } = req.body;
-  const users = readJSON(USERS_FILE);
-  const user = users.find(u => u.username === username && u.password === password);
-  if (!user) return res.status(401).json({ success: false, message: 'Invalid username or password' });
-  const { password: _, ...safe } = user;
-  res.json({ success: true, user: safe });
-});
-
-app.post('/api/auth/register', (req, res) => {
-  const { username, password, name, email } = req.body;
-  const users = readJSON(USERS_FILE);
-  if (users.find(u => u.username === username))
-    return res.status(400).json({ success: false, message: 'Username already exists' });
-  const newUser = { id: Date.now(), username, password, name: name || username, email: email || '', role: 'customer' };
-  users.push(newUser);
-  writeJSON(USERS_FILE, users);
-  const { password: _, ...safe } = newUser;
-  res.json({ success: true, user: safe });
-});
-
-// ===== PRODUCTS =====
-app.get('/api/products', (req, res) => res.json(readJSON(PRODUCTS_FILE)));
-
-app.post('/api/products', (req, res) => {
-  const products = readJSON(PRODUCTS_FILE);
-  const newProduct = {
-    id: Date.now(),
-    name: req.body.name,
-    category: req.body.category,
-    price: parseFloat(req.body.price),
-    stock: parseInt(req.body.stock) || 0,
-    image: req.body.image || 'assets/images/pharmacy2.jpeg'
-  };
-  products.push(newProduct);
-  writeJSON(PRODUCTS_FILE, products);
-  res.json({ success: true, product: newProduct });
-});
-
-app.put('/api/products/:id', (req, res) => {
-  const products = readJSON(PRODUCTS_FILE);
-  const index = products.findIndex(p => p.id == req.params.id);
-  if (index === -1) return res.status(404).json({ success: false, message: 'Product not found' });
-  products[index] = { ...products[index], ...req.body };
-  writeJSON(PRODUCTS_FILE, products);
-  res.json({ success: true, product: products[index] });
-});
-
-app.delete('/api/products/:id', (req, res) => {
-  let products = readJSON(PRODUCTS_FILE);
-  products = products.filter(p => p.id != req.params.id);
-  writeJSON(PRODUCTS_FILE, products);
-  res.json({ success: true });
-});
-
-// ===== ORDERS =====
-app.get('/api/orders', (req, res) => res.json(readJSON(ORDERS_FILE)));
-
-app.post('/api/orders', (req, res) => {
-  const orders = readJSON(ORDERS_FILE);
-  const { customer, items, total, address, phone, paymentMethod } = req.body;
-  const newOrder = {
-    id: 'ORD-' + Date.now(),
-    customer: customer || 'Guest',
-    items: items || [],
-    total: parseFloat(total) || 0,
-    address: address || '',
-    phone: phone || '',
-    paymentMethod: paymentMethod || 'cash',
-    status: 'pending',
-    date: new Date().toLocaleDateString()
-  };
-  orders.push(newOrder);
-  writeJSON(ORDERS_FILE, orders);
-  const products = readJSON(PRODUCTS_FILE);
-  (items || []).forEach(item => {
-    const prod = products.find(p => p.name === item.name);
-    if (prod) prod.stock = Math.max(0, prod.stock - 1);
+if (accountBtn) {
+  accountBtn.addEventListener("click", function(e) {
+    e.preventDefault();
+    const user = getCurrentUser();
+    if (user) {
+      accountMsg.textContent = `Hi ${user.name}`;
+      if (logoutBtn) logoutBtn.style.display = "block";
+    } else {
+      accountMsg.textContent = "You are not logged in yet!";
+      if (logoutBtn) logoutBtn.style.display = "none";
+    }
+    accountBox.style.display = accountBox.style.display === "flex" ? "none" : "flex";
   });
-  writeJSON(PRODUCTS_FILE, products);
-  res.json({ success: true, order: newOrder });
-});
 
-app.put('/api/orders/:id', (req, res) => {
-  const orders = readJSON(ORDERS_FILE);
-  const index = orders.findIndex(o => o.id === req.params.id);
-  if (index === -1) return res.status(404).json({ success: false, message: 'Order not found' });
-  orders[index] = { ...orders[index], ...req.body };
-  writeJSON(ORDERS_FILE, orders);
-  res.json({ success: true, order: orders[index] });
-});
+  document.addEventListener("click", function(e) {
+    if (accountBox && !accountBox.contains(e.target) && !accountBtn.contains(e.target)) {
+      accountBox.style.display = "none";
+    }
+  });
+}
+
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", function(e) {
+    e.preventDefault();
+    localStorage.removeItem("user");
+    localStorage.removeItem("cart");
+    localStorage.removeItem("favorites");
+    window.location.href = "logout.html";
+  });
+}
+
+// ===== NOTIFICATIONS =====
+let notifBtn = document.getElementById("notif-btn");
+let notifBox = document.getElementById("notif-box");
+let notifCount = document.getElementById("notif-count");
+const notifications = ["Your order has been shipped 🚚", "New offer 20% off 🎉", "Vitamin C is back in stock 💊"];
+if (notifBtn && notifBox) {
+  notifBox.innerHTML = notifications.map(n => `<div class="notif-item">${n}</div>`).join('');
+  notifBtn.addEventListener("click", function(e) {
+    e.preventDefault();
+    notifBox.style.display = notifBox.style.display === "flex" ? "none" : "flex";
+    if (notifCount) notifCount.style.display = "none";
+  });
+}
+
+// ===== SPEECH RECOGNITION =====
+let micBtn = document.getElementById("mic-btn");
+let searchInput = document.getElementById("search-input");
+let SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+if (SpeechRecognition && micBtn && searchInput) {
+  let recognition = new SpeechRecognition();
+  recognition.lang = "en-US";
+  micBtn.addEventListener("click", () => recognition.start());
+  recognition.addEventListener("result", e => { searchInput.value = e.results[0][0].transcript; });
+}
 
 // ===== CART =====
-app.get('/api/cart/:userId', (req, res) => {
-  const carts = readJSON(CARTS_FILE);
-  res.json(carts[req.params.userId] || []);
-});
-app.post('/api/cart/:userId', (req, res) => {
-  const carts = readJSON(CARTS_FILE);
-  if (!carts[req.params.userId]) carts[req.params.userId] = [];
-  carts[req.params.userId].push(req.body);
-  writeJSON(CARTS_FILE, carts);
-  res.json({ success: true, cart: carts[req.params.userId] });
-});
-app.delete('/api/cart/:userId/:index', (req, res) => {
-  const carts = readJSON(CARTS_FILE);
-  if (carts[req.params.userId]) carts[req.params.userId].splice(parseInt(req.params.index), 1);
-  writeJSON(CARTS_FILE, carts);
-  res.json({ success: true });
-});
-app.delete('/api/cart/:userId', (req, res) => {
-  const carts = readJSON(CARTS_FILE);
-  carts[req.params.userId] = [];
-  writeJSON(CARTS_FILE, carts);
-  res.json({ success: true });
-});
+let cartBtn = document.getElementById("cart-btn");
+let cartBox = document.getElementById("cart-box");
+let cartItemsContainer = document.getElementById("cart-items");
+let cartCount = document.getElementById("cart-count");
+let cartEmpty = document.getElementById("cart-empty");
+let cart = JSON.parse(localStorage.getItem("cart")) || [];
 
-// ===== FAVORITES =====
-app.get('/api/favorites/:userId', (req, res) => {
-  const favorites = readJSON(FAVORITES_FILE);
-  res.json(favorites[req.params.userId] || []);
-});
-app.post('/api/favorites/:userId', (req, res) => {
-  const favorites = readJSON(FAVORITES_FILE);
-  if (!favorites[req.params.userId]) favorites[req.params.userId] = [];
-  const exists = favorites[req.params.userId].find(f => f.name === req.body.name);
-  if (!exists) { favorites[req.params.userId].push(req.body); writeJSON(FAVORITES_FILE, favorites); }
-  res.json({ success: true, favorites: favorites[req.params.userId] });
-});
-app.delete('/api/favorites/:userId/:productName', (req, res) => {
-  const favorites = readJSON(FAVORITES_FILE);
-  if (favorites[req.params.userId]) {
-    favorites[req.params.userId] = favorites[req.params.userId].filter(
-      f => f.name !== decodeURIComponent(req.params.productName)
-    );
-    writeJSON(FAVORITES_FILE, favorites);
+if (cartBtn && cartBox) {
+  cartBtn.addEventListener("click", function(e) {
+    e.preventDefault();
+    cartBox.style.display = cartBox.style.display === "flex" ? "none" : "flex";
+  });
+}
+
+function updateCartUI() {
+  if (!cartItemsContainer) return;
+  cartItemsContainer.innerHTML = "";
+  if (cart.length === 0) {
+    if (cartEmpty) cartEmpty.style.display = "block";
+    if (cartCount) cartCount.textContent = 0;
+  } else {
+    if (cartEmpty) cartEmpty.style.display = "none";
+    cart.forEach((item, index) => {
+      let div = document.createElement("div");
+      div.classList.add("cart-item");
+      div.innerHTML = `
+        <img src="${item.imgSrc}" alt="${item.name}">
+        <h5>${item.name}</h5>
+        <p>${item.price} L.E</p>
+        <span class="remove-btn" data-index="${index}">&times;</span>
+      `;
+      cartItemsContainer.appendChild(div);
+    });
+    if (cartCount) cartCount.textContent = cart.length;
+    document.querySelectorAll(".remove-btn").forEach(btn => {
+      btn.addEventListener("click", function() {
+        cart.splice(parseInt(btn.getAttribute("data-index")), 1);
+        localStorage.setItem("cart", JSON.stringify(cart));
+        updateCartUI();
+      });
+    });
   }
-  res.json({ success: true });
-});
+}
+updateCartUI();
 
-// ===== USERS =====
-app.get('/api/users', (req, res) => {
-  const users = readJSON(USERS_FILE);
-  res.json(users.map(({ password, ...u }) => u));
-});
-
-// ===== STATS =====
-app.get('/api/stats', (req, res) => {
-  const products = readJSON(PRODUCTS_FILE);
-  const orders = readJSON(ORDERS_FILE);
-  const users = readJSON(USERS_FILE);
-  res.json({
-    totalRevenue: orders.reduce((sum, o) => sum + (o.total || 0), 0),
-    totalOrders: orders.length,
-    totalProducts: products.length,
-    totalUsers: users.length,
-    lowStock: products.filter(p => p.stock < 10).length
+document.querySelectorAll(".add-to-cart").forEach(btn => {
+  btn.addEventListener("click", function() {
+    let product = btn.closest(".product-item");
+    let name = product.querySelector("h4").textContent.trim();
+    let priceText = product.querySelector("p").textContent.trim();
+    let price = parseFloat(priceText.replace(/[^\d.]/g, ''));
+    let imgSrc = product.querySelector("img").src;
+    cart.push({ name, price, imgSrc });
+    localStorage.setItem("cart", JSON.stringify(cart));
+    updateCartUI();
+    showToast("Added to cart 🛒");
   });
 });
 
-// ===== START =====
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`✅ MSSK Server running on http://localhost:${PORT}`);
-  console.log(`📂 Serving files from: ${__dirname}`);
-});
+// ===== CHECKOUT BUTTON =====
+let checkoutBtn = document.getElementById("checkout-btn");
+if (checkoutBtn) {
+  checkoutBtn.addEventListener("click", function(e) {
+    e.preventDefault();
+    if (!isLoggedIn()) {
+      alert("Please log in first to proceed with checkout");
+      window.location.href = "logout.html";
+    } else {
+      window.location.href = "checkout.html";
+    }
+  });
+}
+
+// ===== CONTACT =====
+let contactBtn = document.getElementById("contact-btn");
+let contactSpace = document.getElementById("contact-space");
+if (contactBtn && contactSpace) {
+  contactBtn.addEventListener("click", function(e) {
+    e.preventDefault();
+    contactSpace.classList.toggle("hide");
+  });
+}
+
+// ===== FAVORITES =====
+function initFavorites() {
+  document.querySelectorAll(".add-to-favorite").forEach(button => {
+    let product = button.closest(".product-item");
+    if (!product) return;
+    let name = product.querySelector("h4").textContent.trim();
+    let price = product.querySelector("p").textContent.replace("L.E", "").replace("$", "").trim();
+    let imgSrc = product.querySelector("img").getAttribute("src");
+    let productId = "product-" + name.replace(/\s+/g, '-');
+    product.id = productId;
+    let favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+    if (favorites.some(item => item.name === name)) {
+      button.classList.add("active");
+      button.innerHTML = '<i class="material-icons">favorite</i>';
+    }
+    button.addEventListener("click", function() {
+      let favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+      let index = favorites.findIndex(item => item.name === name);
+      if (index === -1) {
+        favorites.push({ name, price, imgSrc });
+        button.classList.add("active");
+        button.innerHTML = '<i class="material-icons">favorite</i>';
+        showToast("Added to Favorites ❤️");
+      } else {
+        favorites.splice(index, 1);
+        button.classList.remove("active");
+        button.innerHTML = '<i class="material-icons">favorite_border</i>';
+        showToast("Removed from Favorites 💔");
+      }
+      localStorage.setItem("favorites", JSON.stringify(favorites));
+    });
+  });
+}
+initFavorites();
+
+// ===== SCROLL TO PRODUCT FROM FAVORITES =====
+if (window.location.hash) {
+  let id = window.location.hash.substring(1);
+  let product = document.getElementById(id);
+  if (product) {
+    product.scrollIntoView({ behavior: "smooth", block: "start" });
+    product.classList.add("highlight");
+    setTimeout(() => product.classList.remove("highlight"), 2000);
+  }
+}
+
+// ===== TOAST =====
+function showToast(message) {
+  let toast = document.createElement("div");
+  toast.className = "toast";
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.classList.add("show"), 10);
+  setTimeout(() => { toast.classList.remove("show"); setTimeout(() => toast.remove(), 300); }, 2000);
+}
