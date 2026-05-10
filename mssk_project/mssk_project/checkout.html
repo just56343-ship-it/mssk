@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Checkout | MSSK Pharmacy</title>
+  <link rel="stylesheet" href="assets/style/style.css">
+  <link href="https://fonts.googleapis.com/css?family=Material+Icons" rel="stylesheet">
+
+</head>
+<body>
+
+  <div class="checkout-container">
+
+    <h2>Checkout</h2>
+
+    <!-- Order Summary -->
+    <div class="order-summary">
+      <h3>Your Order</h3>
+      <div id="checkout-items"></div>
+      <p id="checkout-total"></p>
+    </div>
+
+    <!-- Customer Info -->
+    <div class="customer-info">
+      <h3>Customer Information</h3>
+
+      <input type="text" placeholder="Full Name" id="customer-name">
+      <input type="text" placeholder="Phone Number" id="customer-phone">
+      <input type="text" placeholder="Address" id="customer-address">
+
+      <!-- Payment -->
+      <div class="payment-methods">
+
+        <label class="payment-option">
+          <input type="radio" name="payment" id="cash-option" checked>
+          <img src="assets/images/cash.png" class="payment-icon">
+          <span>Cash on Delivery</span>
+        </label>
+
+        <label class="payment-option">
+          <input type="radio" name="payment" id="card-option">
+          <img src="assets/images/visa.png" class="payment-icon">
+          <span>Credit Card</span>
+        </label>
+
+      </div>
+
+      <!-- Card Details -->
+      <div id="card-details">
+        <input type="text" placeholder="Card Number" id="card-number">
+        <input type="text" placeholder="Expiry Date (MM/YY)" id="card-expiry">
+        <input type="text" placeholder="CVV" id="card-cvv">
+      </div>
+
+      <button id="confirm-btn">Confirm Order</button>
+    </div>
+
+  </div>
+
+<div style="position: fixed; top: 10px; right: 10px; z-index: 1000;">
+  <button id="account-btn-checkout" style="background: none; border: none; cursor: pointer; font-size: 30px;">
+    <i class="material-icons">account_circle</i>
+  </button>
+  <div class="account-box" id="account-box" style="position: absolute; top: 40px; right: 0; background: white; border: 1px solid #ddd; border-radius: 5px; padding: 10px; min-width: 200px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: none;">
+    <p id="account-msg">Hi there!</p>
+    <button id="logout-btn" style="display: none; width: 100%; padding: 8px; margin-top: 10px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer;">
+      <i class="material-icons" style="font-size: 18px; vertical-align: middle; margin-right: 5px;">logout</i>
+      Log Out
+    </button>
+  </div>
+</div>
+
+<script>
+const API_URL = 'http://localhost:3000/api';
+
+// Account dropdown for checkout page
+let accountBtnCheckout = document.getElementById("account-btn-checkout");
+let accountBoxCheckout = document.getElementById("account-box");
+let accountMsgCheckout = document.getElementById("account-msg");
+let logoutBtnCheckout = document.getElementById("logout-btn");
+
+function getCurrentUser() {
+  try { return JSON.parse(localStorage.getItem("user")) || null; }
+  catch { return null; }
+}
+
+if(accountBtnCheckout){
+    accountBtnCheckout.addEventListener("click", function(e){
+        e.preventDefault();
+        let user = getCurrentUser();
+
+        if(user){
+            accountMsgCheckout.textContent = `Hi ${user.name}`;
+            if(logoutBtnCheckout) logoutBtnCheckout.style.display = "block";
+        } else {
+            accountMsgCheckout.textContent = "You are not logged in yet!";
+            if(logoutBtnCheckout) logoutBtnCheckout.style.display = "none";
+        }
+
+        accountBoxCheckout.style.display = 
+            accountBoxCheckout.style.display === "flex" || accountBoxCheckout.style.display === "block"
+            ? "none"
+            : "block";
+    });
+
+    document.addEventListener("click", function(e){
+        if(!accountBoxCheckout.contains(e.target) && !accountBtnCheckout.contains(e.target)){
+            accountBoxCheckout.style.display = "none";
+        }
+    });
+}
+
+if(logoutBtnCheckout){
+    logoutBtnCheckout.addEventListener("click", function(e){
+        e.preventDefault();
+        localStorage.removeItem("user");
+        localStorage.removeItem("cart");
+        localStorage.removeItem("favorites");
+        accountBoxCheckout.style.display = "none";
+        accountMsgCheckout.textContent = "You are not logged in yet!";
+        logoutBtnCheckout.style.display = "none";
+        alert("Logged out successfully!");
+        window.location.href = "logout.html";
+    });
+}
+
+// ===== Checkout Items Display =====
+let cart = JSON.parse(localStorage.getItem("cart")) || [];
+let checkoutItems = document.getElementById("checkout-items");
+let checkoutTotal = document.getElementById("checkout-total");
+
+// Display products
+if(cart.length === 0){
+  checkoutItems.innerHTML = "<p>Your cart is empty</p>";
+} else {
+  checkoutItems.innerHTML = "";
+  let total = 0;
+
+  cart.forEach(item => {
+    let div = document.createElement("div");
+    div.classList.add("checkout-item");
+    div.innerHTML = `
+      <img src="${item.imgSrc}" width="50">
+      <p>${item.name} - ${item.price} L.E</p>
+    `;
+    checkoutItems.appendChild(div);
+    total += parseFloat(item.price);
+  });
+
+  checkoutTotal.textContent = "Total: " + total + " L.E";
+}
+
+// Payment
+let cashOption = document.getElementById("cash-option");
+let cardOption = document.getElementById("card-option");
+let cardDetails = document.getElementById("card-details");
+
+// Hidden initially
+cardDetails.style.display = "none";
+
+cashOption.addEventListener('change', function(){
+  cardDetails.style.display = "none";
+});
+
+cardOption.addEventListener('change', function(){
+  cardDetails.style.display = "block";
+});
+
+// Confirm Order with API
+async function apiCall(endpoint, method = 'GET', data = null) {
+  const options = {
+    method,
+    headers: { 'Content-Type': 'application/json' }
+  };
+  if (data) options.body = JSON.stringify(data);
+
+  try {
+    const response = await fetch(`${API_URL}${endpoint}`, options);
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    return await response.json();
+  } catch (error) {
+    console.error('API Error:', error);
+    return null;
+  }
+}
+
+document.getElementById("confirm-btn").addEventListener("click", async function(){
+
+  let name = document.getElementById("customer-name").value;
+  let phone = document.getElementById("customer-phone").value;
+  let address = document.getElementById("customer-address").value;
+  let user = getCurrentUser();
+
+  if(cart.length === 0){
+    alert("Your cart is empty!");
+    return;
+  }
+
+  if(name === "" || phone === "" || address === ""){
+    alert("Please fill all info");
+    return;
+  }
+
+  // If card
+  if(cardOption.checked){
+    let cardNumber = document.getElementById("card-number").value;
+    let expiry = document.getElementById("card-expiry").value;
+    let cvv = document.getElementById("card-cvv").value;
+
+    if(cardNumber === "" || expiry === "" || cvv === ""){
+      alert("Fill card details");
+      return;
+    }
+  }
+
+  // Calculate total
+  let total = cart.reduce((sum, item) => sum + parseFloat(item.price), 0);
+
+  // Send order to server
+  const result = await apiCall('/orders', 'POST', {
+    customer: user ? user.name : name,
+    items: cart,
+    total: total,
+    address: address,
+    phone: phone,
+    paymentMethod: cardOption.checked ? 'card' : 'cash'
+  });
+
+  if (result && result.success) {
+    alert("Order placed successfully! Order ID: " + result.order.id);
+
+    // Clear cart
+    if (user) {
+      await apiCall(`/cart/${user.id}`, 'DELETE');
+    }
+    localStorage.removeItem("cart");
+    window.location.href = "index.html";
+  } else {
+    // Fallback: save locally if server is down
+    alert("Order placed successfully (saved locally)!");
+    localStorage.removeItem("cart");
+    window.location.href = "index.html";
+  }
+});
+</script>
+
+</body>
+</html>

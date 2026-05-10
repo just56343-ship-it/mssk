@@ -1,0 +1,122 @@
+[
+  {
+    "id": 1,
+    "name": "Cosmetics Kit 1",
+    "category": "Cosmetics",
+    "price": 550,
+    "stock": 20,
+    "image": "assets/images/cos2.jpg"
+  },
+  {
+    "id": 2,
+    "name": "Cosmetics Kit 2",
+    "category": "Cosmetics",
+    "price": 450,
+    "stock": 15,
+    "image": "assets/images/cos1.jpg"
+  },
+  {
+    "id": 3,
+    "name": "Cosmetics Kit 3",
+    "category": "Cosmetics",
+    "price": 357,
+    "stock": 30,
+    "image": "assets/images/cos3.jpg"
+  },
+  {
+    "id": 4,
+    "name": "Mom & Baby Set 1",
+    "category": "Mom & Baby",
+    "price": 100,
+    "stock": 50,
+    "image": "assets/images/baby1.jpg"
+  },
+  {
+    "id": 5,
+    "name": "Mom & Baby Set 2",
+    "category": "Mom & Baby",
+    "price": 500,
+    "stock": 25,
+    "image": "assets/images/baby2.jpg"
+  },
+  {
+    "id": 6,
+    "name": "Mom & Baby Set 3",
+    "category": "Mom & Baby",
+    "price": 400,
+    "stock": 40,
+    "image": "assets/images/baby3.jpg"
+  },
+  {
+    "id": 7,
+    "name": "First Aid Kit 1",
+    "category": "First Aid",
+    "price": 28000,
+    "stock": 5,
+    "image": "assets/images/aid1.jpg"
+  },
+  {
+    "id": 8,
+    "name": "First Aid Kit 2",
+    "category": "First Aid",
+    "price": 100,
+    "stock": 100,
+    "image": "assets/images/aid22.jpg"
+  },
+  {
+    "id": 9,
+    "name": "First Aid Kit 3",
+    "category": "First Aid",
+    "price": 265,
+    "stock": 60,
+    "image": "assets/images/aid3.jpg"
+  },
+  {
+    "id": 10,
+    "name": "Pil 1",
+    "category": "Medicines",
+    "price": 40,
+    "stock": 200,
+    "image": "assets/images/pil1.jpeg"
+  },
+  {
+    "id": 11,
+    "name": "Pil 2",
+    "category": "Medicines",
+    "price": 80,
+    "stock": 150,
+    "image": "assets/images/pil2.jpeg"
+  },
+  {
+    "id": 12,
+    "name": "Pil 3",
+    "category": "Medicines",
+    "price": 100,
+    "stock": 120,
+    "image": "assets/images/pil3.jpeg"
+  },
+  {
+    "id": 13,
+    "name": "Vitamin 1",
+    "category": "Vitamins",
+    "price": 650,
+    "stock": 80,
+    "image": "assets/images/v1.jpeg"
+  },
+  {
+    "id": 14,
+    "name": "Vitamin 2",
+    "category": "Vitamins",
+    "price": 1750,
+    "stock": 30,
+    "image": "assets/images/v2.jpeg"
+  },
+  {
+    "id": 15,
+    "name": "Vitamin 3",
+    "category": "Vitamins",
+    "price": 899,
+    "stock": 45,
+    "image": "assets/images/v3.jpeg"
+  }
+]

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="assets/style/style.css">
+  <link href="https://fonts.googleapis.com/css?family=Material+Icons" rel="stylesheet">
+  <title>MSSK | Favorites</title>
+
+</head>
+<body>
+
+<header>
+  <div class="left-section">
+    <i class="material-icons" id="menu-btn">menu</i>
+    <a href="index.html">
+       <img src="assets/images/pharmacy2.jpeg" alt="MSSK Logo">
+     </a>
+  </div>
+  <div class="mid-section">
+    <form>
+      <input type="text" placeholder="Search medicines..." id="search-input" aria-label="Search medicines">
+      <button type="submit"><i class="material-icons">search</i></button>
+      <div class="mic" id="mic-btn"><i class="material-icons">mic</i></div>
+    </form>
+  </div>
+  <div class="right-section">
+    <a href="#" id="cart-btn" class="notif-wrapper">
+      <i class="material-icons">shopping_cart</i>
+      <span class="notif-count" id="cart-count">0</span>
+    </a>
+    <div class="cart-box" id="cart-box">
+      <h4>Your Cart</h4>
+      <div id="cart-items"></div>
+      <p id="cart-empty">Your cart is empty</p>
+      <button id="checkout-btn">Checkout</button>
+    </div>
+    <a href="#" id="notif-btn" class="notif-wrapper">
+      <i class="material-icons">notifications</i>
+      <span class="notif-count" id="notif-count">3</span>
+    </a>
+    <div class="notif-box" id="notif-box"></div>
+    <a href="#" id="account-btn"><i class="material-icons">account_circle</i></a>
+  </div>
+  <div class="account-box" id="account-box">
+    <p id="account-msg">Hi there!</p>
+    <button id="logout-btn" style="display: none; width: 100%; padding: 8px; margin-top: 10px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer;">
+      <i class="material-icons" style="font-size: 18px; vertical-align: middle; margin-right: 5px;">logout</i>
+      Log Out
+    </button>
+  </div>
+</header>
+
+<div class="content-area">
+  <aside id="sidebar" class="hide">
+    <nav>
+      <a href="index.html" class="nav-link active"><i class="material-icons">home</i><span>Home</span></a>
+      <a href="favorite.html" class="nav-link"><i class="material-icons">favorite</i><span>Favorite</span></a>
+      <hr>
+      <a href="#" id="contact-btn" class="nav-link"><i class="material-icons">call</i><span>Contact Us</span></a>
+      <div id="contact-space" class="hide">
+        <h3>Contact Us</h3>
+        <p>You can reach us at: <a href="https://chat.whatsapp.com/GPGxHgjs4iT6aSeLt08cys?mode=gi_t">Join my group</a></p>
+        <p>Or call: <a href="tel:+201270191608">20 12 70191608</a></p>
+      </div>
+      <a href="logout.html" class="nav-link"><i class="material-icons">logout</i><span>Log Out</span></a>
+    </nav>
+  </aside>
+
+  <main>
+    <section class="products-page">
+      <h2>My Favorite Products:</h2>
+      <hr>
+      <div id="favorite-items" class="product-row"></div>
+      <p id="favorite-empty">No favorite products yet.</p>
+    </section>
+  </main>
+</div>
+
+<script src="assets/scripts/script.js"></script>
+
+<script>
+const API_URL = 'http://localhost:3000/api';
+
+function getCurrentUser() {
+  try { return JSON.parse(localStorage.getItem("user")) || null; }
+  catch { return null; }
+}
+
+async function apiCall(endpoint, method = 'GET', data = null) {
+  const options = {
+    method,
+    headers: { 'Content-Type': 'application/json' }
+  };
+  if (data) options.body = JSON.stringify(data);
+
+  try {
+    const response = await fetch(`${API_URL}${endpoint}`, options);
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    return await response.json();
+  } catch (error) {
+    console.error('API Error:', error);
+    return null;
+  }
+}
+
+async function loadFavorites(){
+  let container = document.getElementById("favorite-items");
+  let emptyMsg = document.getElementById("favorite-empty");
+  let user = getCurrentUser();
+  let favorites = [];
+
+  container.innerHTML = "";
+
+  if (user) {
+    const data = await apiCall(`/favorites/${user.id}`);
+    if (data) favorites = data;
+  } else {
+    favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+  }
+
+  if(favorites.length === 0){
+    emptyMsg.style.display = "block";
+    return;
+  }
+  emptyMsg.style.display = "none";
+
+  favorites.forEach((item, index) => {
+    let productId = "product-" + item.name.replace(/\s+/g, '-');
+    let div = document.createElement("div");
+    div.classList.add("product-item");
+
+    div.innerHTML = `
+      <a href="products.html#${productId}">
+        <img src="${item.imgSrc}" alt="${item.name}">
+        <h4>${item.name}</h4>
+      </a>
+      <p>$${item.price}</p>
+      <button class="add-to-favorite active" onclick="removeFavorite(${index}, '${encodeURIComponent(item.name)}')">
+        <i class="material-icons">favorite</i>
+      </button>
+    `;
+    container.appendChild(div);
+  });
+}
+
+async function removeFavorite(index, encodedName){
+  let user = getCurrentUser();
+
+  if (user) {
+    await apiCall(`/favorites/${user.id}/${encodedName}`, 'DELETE');
+  }
+
+  let favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+  favorites.splice(index, 1);
+  localStorage.setItem("favorites", JSON.stringify(favorites));
+  loadFavorites();
+}
+
+loadFavorites();
+</script>
+
+</body>
+</html>
