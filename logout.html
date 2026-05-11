@@ -18,34 +18,79 @@
     .input-group i { position: absolute; right: 10px; top: 10px; color: #888; }
     .login-btn { width: 100%; padding: 12px; border: none; background: #0a66c2; color: white; font-size: 15px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
     .login-btn:hover { background: #084c96; }
+    .register-btn { width: 100%; padding: 12px; border: 2px solid #0a66c2; background: white; color: #0a66c2; font-size: 15px; border-radius: 8px; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+    .register-btn:hover { background: #f0f7ff; }
+    .divider { display: flex; align-items: center; gap: 10px; margin: 15px 0; color: #aaa; font-size: 13px; }
+    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #e0e0e0; }
     .extra-links { margin-top: 15px; font-size: 13px; }
     .extra-links a { color: #0a66c2; text-decoration: none; }
     .error { color: red; font-size: 13px; margin-bottom: 10px; display: none; }
     .loading { display: none; margin-bottom: 10px; color: #0a66c2; font-size: 13px; }
+    /* Register form */
+    .register-form { display: none; }
+    .back-link { color: #0a66c2; cursor: pointer; font-size: 13px; margin-bottom: 10px; display: inline-block; }
+    .success { color: green; font-size: 13px; margin-bottom: 10px; display: none; }
   </style>
 </head>
 <body>
   <div class="login-container">
     <img src="assets/images/pharmacy2.jpeg" class="logo" onerror="this.style.display='none'">
-    <h2>Welcome to MSSK</h2>
-    <div class="error" id="error-msg">Invalid username or password</div>
-    <div class="loading" id="loading-msg">⏳ Logging in...</div>
-    <div class="input-group">
-      <input type="text" id="username" placeholder="Username">
-      <i class="material-icons">person</i>
+
+    <!-- LOGIN FORM -->
+    <div id="login-form">
+      <h2>Welcome to MSSK</h2>
+      <div class="error" id="error-msg">Invalid username or password</div>
+      <div class="loading" id="loading-msg">⏳ Logging in...</div>
+      <div class="input-group">
+        <input type="text" id="username" placeholder="Username">
+        <i class="material-icons">person</i>
+      </div>
+      <div class="input-group">
+        <input type="password" id="password" placeholder="Password">
+        <i class="material-icons">lock</i>
+      </div>
+      <button class="login-btn" onclick="login()">Login</button>
+      <div class="divider">or</div>
+      <button class="register-btn" onclick="showRegister()">Create Account</button>
     </div>
-    <div class="input-group">
-      <input type="password" id="password" placeholder="Password">
-      <i class="material-icons">lock</i>
-    </div>
-    <button class="login-btn" onclick="login()">Login</button>
-    <div class="extra-links">
-      <p style="margin-top:10px; color:#888; font-size:12px;">Use: admin / 1234 &nbsp;|&nbsp; user / 1234</p>
+
+    <!-- REGISTER FORM -->
+    <div id="register-form" class="register-form">
+      <h2>Create Account</h2>
+      <span class="back-link" onclick="showLogin()">← Back to Login</span>
+      <div class="error" id="reg-error-msg"></div>
+      <div class="success" id="reg-success-msg">✅ Account created! Please login.</div>
+      <div class="input-group">
+        <input type="text" id="reg-name" placeholder="Full Name">
+        <i class="material-icons">badge</i>
+      </div>
+      <div class="input-group">
+        <input type="text" id="reg-username" placeholder="Username">
+        <i class="material-icons">person</i>
+      </div>
+      <div class="input-group">
+        <input type="email" id="reg-email" placeholder="Email (optional)">
+        <i class="material-icons">email</i>
+      </div>
+      <div class="input-group">
+        <input type="password" id="reg-password" placeholder="Password">
+        <i class="material-icons">lock</i>
+      </div>
+      <button class="login-btn" onclick="register()">Create Account</button>
     </div>
   </div>
 
   <script>
     const API_URL = '/api';
+
+    function showRegister() {
+      document.getElementById("login-form").style.display = "none";
+      document.getElementById("register-form").style.display = "block";
+    }
+    function showLogin() {
+      document.getElementById("register-form").style.display = "none";
+      document.getElementById("login-form").style.display = "block";
+    }
 
     async function login() {
       const username = document.getElementById("username").value.trim();
@@ -81,6 +126,50 @@
       } catch (e) {
         loadingMsg.style.display = "none";
         errorMsg.textContent = "❌ Cannot connect to server. Make sure node server.js is running!";
+        errorMsg.style.display = "block";
+      }
+    }
+
+    async function register() {
+      const name = document.getElementById("reg-name").value.trim();
+      const username = document.getElementById("reg-username").value.trim();
+      const email = document.getElementById("reg-email").value.trim();
+      const password = document.getElementById("reg-password").value.trim();
+      const errorMsg = document.getElementById("reg-error-msg");
+      const successMsg = document.getElementById("reg-success-msg");
+
+      errorMsg.style.display = "none";
+      successMsg.style.display = "none";
+
+      if (!name || !username || !password) {
+        errorMsg.textContent = "Please fill Name, Username and Password";
+        errorMsg.style.display = "block";
+        return;
+      }
+      if (password.length < 4) {
+        errorMsg.textContent = "Password must be at least 4 characters";
+        errorMsg.style.display = "block";
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, username, email, password })
+        });
+        const data = await response.json();
+
+        if (data.success) {
+          successMsg.style.display = "block";
+          ["reg-name","reg-username","reg-email","reg-password"].forEach(id => document.getElementById(id).value = "");
+          setTimeout(() => showLogin(), 2000);
+        } else {
+          errorMsg.textContent = data.message || "Registration failed";
+          errorMsg.style.display = "block";
+        }
+      } catch (e) {
+        errorMsg.textContent = "❌ Cannot connect to server!";
         errorMsg.style.display = "block";
       }
     }
