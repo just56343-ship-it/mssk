@@ -1,161 +1,918 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <link rel="stylesheet" href="assets/style/style.css">
-  <link href="https://fonts.googleapis.com/css?family=Material+Icons|Material+Icons+Outlined|Material+Icons+Two+Tone|Material+Icons+Round|Material+Icons+Sharp" rel="stylesheet">
-  <title>MSSK | pharmacy</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Lato:wght@300;400&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+  <title>Haj</title>
+  <style>
+    /* ── ADMIN PAGE ── */
+    .admin-nav-bar {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:16px 40px; background:#3a2e27; color:#fff;
+      position:sticky; top:0; z-index:100;
+    }
+    .admin-nav-bar .admin-logo {
+      font-family:'Playfair Display',serif; font-size:18px; color:#c9a87c;
+    }
+    .admin-nav-bar .admin-greeting { font-size:13px; color:#c9b49a; }
+    .admin-logout-btn {
+      background:none; border:1px solid #c9a87c; color:#c9a87c;
+      padding:7px 18px; border-radius:4px; font-size:12px; cursor:pointer;
+      font-family:'Lato',sans-serif; transition:all 0.2s;
+    }
+    .admin-logout-btn:hover { background:#c9a87c; color:#3a2e27; }
 
+    /* Login screen inside admin page */
+    .admin-login-screen {
+      display:flex; align-items:center; justify-content:center;
+      min-height:80vh;
+    }
+    .admin-login-card {
+      background:#fff; border-radius:16px; padding:44px; width:400px;
+      box-shadow:0 8px 40px rgba(58,46,39,0.12);
+    }
+    .admin-login-card h2 {
+      font-family:'Playfair Display',serif; font-size:24px;
+      color:#3a2e27; margin-bottom:8px;
+    }
+    .admin-login-card p { font-size:13px; color:#9e8e82; margin-bottom:28px; }
+    .admin-field { margin-bottom:18px; }
+    .admin-field label { display:block; font-size:12px; font-weight:700; color:#3a2e27; margin-bottom:6px; }
+    .admin-field input {
+      width:100%; padding:12px 14px; border:1px solid #e0d8d2;
+      border-radius:8px; font-size:14px; font-family:'Lato',sans-serif;
+      outline:none; transition:border 0.2s;
+    }
+    .admin-field input:focus { border-color:#c9a87c; }
+    .admin-login-btn {
+      width:100%; background:#3a2e27; color:#fff; border:none;
+      padding:14px; border-radius:30px; font-size:14px; font-weight:700;
+      cursor:pointer; font-family:'Lato',sans-serif; transition:background 0.2s;
+    }
+    .admin-login-btn:hover { background:#c9a87c; }
+    .admin-login-error { color:#e07070; font-size:12px; margin-top:10px; min-height:16px; }
+
+    /* Dashboard */
+    .admin-dashboard { display:none; }
+    .dash-body { padding:32px 40px; max-width:1300px; margin:0 auto; }
+
+    .stats-grid {
+      display:grid; grid-template-columns:repeat(4,1fr);
+      gap:20px; margin-bottom:36px;
+    }
+    .stat-card {
+      background:#fff; border-radius:12px; padding:24px;
+      border:1px solid #f0e8e2; box-shadow:0 2px 12px rgba(58,46,39,0.06);
+    }
+    .stat-label { font-size:11px; font-weight:700; letter-spacing:1px; color:#9e8e82; margin-bottom:10px; }
+    .stat-value { font-size:30px; font-weight:700; color:#3a2e27; }
+    .stat-value.gold  { color:#c9a87c; }
+    .stat-value.green { color:#5a9e6f; }
+    .stat-value.orange{ color:#d4884a; }
+
+    .admin-tabs { display:flex; gap:0; margin-bottom:24px; border-bottom:2px solid #f0e8e2; }
+    .admin-tab-btn {
+      background:none; border:none; padding:12px 28px; font-size:14px;
+      font-weight:700; color:#9e8e82; cursor:pointer; font-family:'Lato',sans-serif;
+      border-bottom:2px solid transparent; margin-bottom:-2px; transition:all 0.2s;
+    }
+    .admin-tab-btn.active { color:#3a2e27; border-bottom:2px solid #3a2e27; }
+
+    .admin-table-card {
+      background:#fff; border-radius:12px; border:1px solid #f0e8e2;
+      box-shadow:0 2px 12px rgba(58,46,39,0.06); overflow:hidden;
+    }
+    .admin-table-header {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:20px 24px; border-bottom:1px solid #f0e8e2;
+    }
+    .admin-table-header h3 { font-family:'Playfair Display',serif; font-size:18px; color:#3a2e27; }
+    .admin-refresh-btn {
+      background:#f5f0eb; border:none; color:#3a2e27; padding:8px 18px;
+      border-radius:20px; font-size:12px; font-weight:700; cursor:pointer;
+      font-family:'Lato',sans-serif; transition:background 0.2s;
+    }
+    .admin-refresh-btn:hover { background:#e8d5c4; }
+
+    .admin-table-card table { width:100%; border-collapse:collapse; }
+    .admin-table-card thead { background:#faf7f4; }
+    .admin-table-card th {
+      padding:12px 16px; text-align:left; font-size:11px;
+      font-weight:700; letter-spacing:1px; color:#9e8e82;
+      border-bottom:1px solid #f0e8e2;
+    }
+    .admin-table-card td {
+      padding:14px 16px; font-size:13px; color:#3a2e27;
+      border-bottom:1px solid #faf7f4;
+    }
+    .admin-table-card tr:last-child td { border-bottom:none; }
+    .admin-table-card tr:hover td { background:#faf7f4; }
+
+    .abadge {
+      display:inline-block; padding:4px 12px; border-radius:20px;
+      font-size:11px; font-weight:700; letter-spacing:0.5px;
+    }
+    .abadge-pending   { background:#fff3e0; color:#d4884a; }
+    .abadge-processing{ background:#e3f2fd; color:#1976d2; }
+    .abadge-shipped   { background:#e8f5e9; color:#388e3c; }
+    .abadge-delivered { background:#c8e6c9; color:#1b5e20; }
+    .abadge-cancelled { background:#ffebee; color:#c62828; }
+    .abadge-admin     { background:#ede7f6; color:#512da8; }
+    .abadge-user      { background:#f5f0eb; color:#6e5e56; }
+
+    .status-select {
+      border:1px solid #e0d8d2; border-radius:6px; padding:6px 10px;
+      font-size:12px; font-family:'Lato',sans-serif; color:#3a2e27;
+      background:#fff; cursor:pointer; outline:none;
+    }
+    .status-select:focus { border-color:#c9a87c; }
+    .status-update-btn {
+      background:#3a2e27; color:#fff; border:none; padding:6px 14px;
+      border-radius:6px; font-size:12px; cursor:pointer;
+      font-family:'Lato',sans-serif; transition:background 0.2s; margin-left:6px;
+    }
+    .status-update-btn:hover { background:#c9a87c; }
+
+    .admin-empty { text-align:center; padding:60px 20px; color:#9e8e82; }
+    .admin-empty p:first-child { font-size:36px; margin-bottom:12px; }
+    .admin-loading { text-align:center; padding:40px; color:#9e8e82; font-size:14px; }
+
+    .admin-tab-panel { display:none; }
+    .admin-tab-panel.active { display:block; }
+
+    /* ── PRODUCTS UPLOAD ── */
+    .prod-img-upload-area {
+      border:2px dashed #e0d8d2; border-radius:12px; padding:32px 20px;
+      text-align:center; cursor:pointer; transition:all 0.2s; background:#faf7f4;
+    }
+    .prod-img-upload-area:hover { border-color:#c9a87c; background:#fff8f2; }
+    .prod-img-upload-area.drag-over { border-color:#c9a87c; background:#fff3e8; }
+    .prod-upload-icon { font-size:40px; margin-bottom:10px; }
+    .prod-upload-text { font-family:'Playfair Display',serif; font-size:15px; color:#3a2e27; margin-bottom:4px; }
+    .prod-upload-sub { font-size:12px; color:#9e8e82; }
+
+    .prod-img-previews { display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
+    .prod-preview-wrap {
+      position:relative; width:80px; height:80px; border-radius:8px;
+      overflow:hidden; border:2px solid #e0d8d2;
+    }
+    .prod-preview-wrap img { width:100%; height:100%; object-fit:cover; }
+    .prod-preview-remove {
+      position:absolute; top:2px; right:2px; background:rgba(58,46,39,0.75);
+      color:#fff; border:none; border-radius:50%; width:20px; height:20px;
+      font-size:11px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+    }
+    .prod-preview-wrap.first-badge::after {
+      content:'Main'; position:absolute; bottom:0; left:0; right:0;
+      background:rgba(201,168,124,0.9); color:#fff; font-size:9px;
+      text-align:center; padding:2px 0; font-weight:700;
+    }
+
+    /* Products Grid in Admin */
+    .admin-products-grid {
+      display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:16px;
+    }
+    .admin-product-card {
+      border:1px solid #f0e8e2; border-radius:12px; overflow:hidden;
+      background:#fff; transition:box-shadow 0.2s;
+    }
+    .admin-product-card:hover { box-shadow:0 4px 20px rgba(58,46,39,0.1); }
+    .admin-product-card-img {
+      width:100%; height:160px; object-fit:cover;
+    }
+    .admin-product-card-body { padding:12px; }
+    .admin-product-card-name {
+      font-family:'Playfair Display',serif; font-size:13px; color:#3a2e27;
+      margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .admin-product-card-price { font-size:13px; color:#c9a87c; font-weight:700; margin-bottom:10px; }
+    .admin-product-card-imgs { font-size:11px; color:#9e8e82; margin-bottom:10px; }
+    .admin-product-bs-btn {
+      width:100%; border-radius:6px; padding:7px; font-size:12px; cursor:pointer;
+      font-family:'Lato',sans-serif; transition:all 0.2s; font-weight:700;
+      margin-bottom:6px;
+    }
+    .admin-product-bs-btn:hover { opacity:0.8; }
+    .admin-product-delete-btn {
+      width:100%; background:#fff0f0; color:#c62828; border:1px solid #ffcdd2;
+      border-radius:6px; padding:7px; font-size:12px; cursor:pointer;
+      font-family:'Lato',sans-serif; transition:all 0.2s; font-weight:700;
+    }
+    .admin-product-delete-btn:hover { background:#ffebee; }
+
+    @media (max-width:768px) {
+      .admin-nav-bar { padding:14px 20px; }
+      .dash-body { padding:20px 16px; }
+      .stats-grid { grid-template-columns:1fr 1fr; gap:14px; }
+      .stat-value { font-size:22px; }
+      .admin-table-card th, .admin-table-card td { padding:10px 10px; font-size:12px; }
+    }
+  </style>
 </head>
 <body>
-  <header>
-    
 
-    
+<!-- ====================================================
+  AUTH POPUP
+==================================================== -->
+<div class="auth-overlay" id="auth-overlay" onclick="closeAuth()">
+  <div class="auth-box" onclick="event.stopPropagation()">
+    <button class="auth-close" onclick="closeAuth()">✕</button>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-login"  onclick="switchTab('login')">Login</button>
+      <button class="auth-tab"        id="tab-signup" onclick="switchTab('signup')">Sign Up</button>
+    </div>
+    <div id="login-form">
+      <h3>Welcome Back 👋</h3>
+      <div class="auth-field"><label>Email</label><input type="email" id="login-email" placeholder="you@email.com" onkeydown="if(event.key==='Enter')login()"/></div>
+      <div class="auth-field"><label>Password</label><input type="password" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()"/></div>
+      <p class="auth-error" id="login-error"></p>
+      <button class="auth-btn" onclick="login()">Login</button>
+    </div>
+    <div id="signup-form" style="display:none;">
+      <h3>Create Account ✨</h3>
+      <div class="auth-field"><label>Full Name</label><input type="text" id="signup-name" placeholder="Your name" onkeydown="if(event.key==='Enter')signup()"/></div>
+      <div class="auth-field"><label>Email</label><input type="email" id="signup-email" placeholder="you@email.com" onkeydown="if(event.key==='Enter')signup()"/></div>
+      <div class="auth-field"><label>Password</label><input type="password" id="signup-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')signup()"/></div>
+      <p class="auth-error" id="signup-error"></p>
+      <button class="auth-btn" onclick="signup()">Create Account</button>
+    </div>
+  </div>
+</div>
 
-    <div class="left-section">
-      <i class="material-icons" id="menu-btn">menu</i>
-      <a href="index.html">
-        <img src="assets/images/pharmacy2.jpeg" alt="MSSK Logo">
-      </a>
+
+<!-- ====================================================
+  CART POPUP
+==================================================== -->
+<div class="cart-overlay" id="cart" onclick="closeCart()">
+  <div class="cart-box" onclick="event.stopPropagation()">
+    <div class="cart-header">
+      <h3>🛒 Shopping Cart</h3>
+      <button class="cart-close" onclick="closeCart()">✕</button>
     </div>
-    <div class="mid-section">
-      <form>
-        <input type="text" placeholder="Search medicines..." id="search-input" aria-label="Search medicines">
-        <button type="submit"><i class="material-icons">search</i></button>
-        <div class="mic" id="mic-btn"><i class="material-icons">mic</i></div>
-      </form>
+    <div class="cart-items" id="cart-items">
+      <p class="cart-empty">Your cart is empty</p>
     </div>
-    <div class="right-section">
-      <a href="#" id="cart-btn" class="notif-wrapper">
-        <i class="material-icons">shopping_cart</i>
-        <span class="notif-count" id="cart-count">0</span>
-      </a>
-      <div class="cart-box" id="cart-box">
-        <h4>Your Cart</h4>
-        <div id="cart-items"></div>
-        <p id="cart-empty">Your cart is empty</p>
-        <button id="checkout-btn">Checkout</button>
+    <div class="cart-footer">
+      <div class="cart-total"><span>Total:</span><span id="cart-total">0 EG</span></div>
+      <a class="checkout-btn" onclick="goToCheckout()">Checkout</a>
+    </div>
+  </div>
+</div>
+
+
+<!-- ====================================================
+  ACCOUNT PAGE
+==================================================== -->
+<div id="account-page" style="display:none;">
+  <nav>
+    <div class="logo"><img src="logo.jpg" alt="Logo"/></div>
+    <a class="back-home-btn" onclick="showPage('main')">← Back to Home</a>
+  </nav>
+  <div class="account-container">
+    <div class="account-header">
+      <h2>My Account</h2>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+    <div class="account-grid">
+      <div class="account-card">
+        <h4>👤 My Info</h4>
+        <p id="account-name-display"></p>
+        <p id="account-email-display"></p>
+        <hr style="margin:16px 0;border-color:#f0e8e2;"/>
+        <h4>📍 Saved Address</h4>
+        <input class="account-input" id="saved-address" placeholder="Your address..."/>
+        <button class="save-btn" onclick="saveAddress()">Save Address</button>
       </div>
-      <a href="#" id="notif-btn" class="notif-wrapper">
-        <i class="material-icons">notifications</i>
-        <span class="notif-count" id="notif-count">3</span>
-      </a>
-      <div class="notif-box" id="notif-box"></div>
-      <a href="#" id="account-btn"><i class="material-icons">account_circle</i></a>
+      <div class="account-card">
+        <h4>📦 My Orders</h4>
+        <div id="orders-list">
+          <p style="color:#9e8e82;font-size:13px;">No orders yet.</p>
+        </div>
+      </div>
     </div>
-  </header>
+  </div>
+</div>
 
-  <div class="account-box" id="account-box">
-    <p id="account-msg">Hi there!</p>
-    <button id="logout-btn" style="display: none; width: 100%; padding: 8px; margin-top: 10px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer;">
-      <i class="material-icons" style="font-size: 18px; vertical-align: middle; margin-right: 5px;">logout</i>
-      Log Out
-    </button>
+
+<!-- ====================================================
+  CHECKOUT PAGE
+==================================================== -->
+<div id="checkout-page" style="display:none;">
+  <nav>
+    <div class="logo"><img src="logo.jpg" alt="Logo"/></div>
+    <button class="back-btn" onclick="goBack()">← Back to Shop</button>
+  </nav>
+  <div class="checkout-container">
+
+    <div class="checkout-left">
+      <h2>Complete Your Order</h2>
+      <div class="form-group"><label>Full Name *</label><input id="customer-name" placeholder="Enter your name"/></div>
+      <div class="form-group"><label>Phone Number *</label><input id="customer-phone" placeholder="01xxxxxxxxx"/></div>
+      <div class="form-group"><label>Address *</label><input id="customer-address" placeholder="City, Street..."/></div>
+      <div class="form-group"><label>Notes (Optional)</label><textarea id="customer-notes" placeholder="Any details..."></textarea></div>
+
+      <div class="payment-methods">
+        <p class="payment-title">Payment Method</p>
+        <div class="payment-options">
+          <div class="payment-option active" id="opt-whatsapp" onclick="selectPayment('cash')">
+            <span>💬</span><span>Cash</span>
+          </div>
+          <div class="payment-option" id="opt-visa" onclick="selectPayment('visa')">
+            <span>💳</span><span>Credit / Debit Card</span>
+          </div>
+        </div>
+      </div>
+      <div id="visa-form" style="display:none;">
+        <div class="visa-box">
+          <p class="visa-title">💳 Card Details</p>
+          <div class="form-group"><label>Cardholder Name</label><input id="card-name" placeholder="Name on card"/></div>
+          <div class="form-group">
+            <label>Card Number</label>
+            <input id="card-number" placeholder="1234 5678 9012 3456" maxlength="19" oninput="formatCard(this)"/>
+          </div>
+          <div class="visa-row">
+            <div class="form-group"><label>Expiry</label><input id="card-expiry" placeholder="MM / YY" maxlength="7" oninput="formatExpiry(this)"/></div>
+            <div class="form-group"><label>CVV</label><input id="card-cvv" placeholder="•••" maxlength="3" type="password"/></div>
+          </div>
+          <div class="visa-secure">🔒 Your payment is secured and encrypted</div>
+        </div>
+      </div>
+
+      <button class="submit-order-btn" onclick="submitOrder()">✅ Confirm Order</button>
+    </div>
+
+    <div class="checkout-right">
+      <h3>Your Order</h3>
+      <div id="checkout-items"></div>
+      <div class="checkout-total">
+        <span>Total:</span>
+        <span id="checkout-total-price">0 EG</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ====================================================
+  SUCCESS PAGE
+==================================================== -->
+<div id="success-page" style="display:none;">
+  <nav>
+    <div class="logo"><img src="logo.jpg" alt="Logo"/></div>
+  </nav>
+  <div class="success-container">
+    <div class="success-icon">✅</div>
+    <h2>Order Confirmed!</h2>
+    <p id="success-message"></p>
+    <button class="success-btn" onclick="showPage('main')">Continue Shopping</button>
+  </div>
+</div>
+
+
+<!-- ====================================================
+  NEW COLLECTION PAGE
+==================================================== -->
+<div id="new-collection-page" style="display:none;">
+  <nav>
+    <div class="logo"><img src="logo.jpg" alt="Logo"/></div>
+    <div style="display:flex;align-items:center;gap:16px;">
+      <div class="search-box">
+        <input type="text" id="search-input-nc" placeholder="Search hijabs..."
+               oninput="handleSearch(this.value)"/>
+        <span>🔍</span>
+      </div>
+      <div class="cart-icon" onclick="openCart()">🛒<span class="cart-count" id="cart-count-nc">0</span></div>
+      <a class="back-home-btn" onclick="showPage('main')">← Back to Home</a>
+    </div>
+  </nav>
+
+  <section class="nc-hero">
+    <h1>New Collection</h1>
+    <p>Discover our latest styles</p>
+  </section>
+
+  <section class="nc-products" id="nc-products-container"></section>
+
+  <footer class="page-footer">
+    <p>© 2025 Haj. All rights reserved. |
+      <a href="https://wa.me/201201325656" onclick="window.open(this.href,'_blank');return false;">WhatsApp Us</a>
+    </p>
+  </footer>
+</div>
+
+
+<!-- ====================================================
+  MAIN PAGE
+==================================================== -->
+<div id="main-page">
+
+  <nav>
+    <div class="logo"><img src="logo.jpg" alt="Logo"/></div>
+    <button class="hamburger" onclick="toggleMenu()" id="hamburger-btn">☰</button>
+    <ul class="nav-links" id="nav-links">
+      <li><a onclick="scrollToHome()">Home</a></li>
+      <li><a onclick="scrollToProducts()">Shop</a></li>
+      <li><a onclick="showPage('new-collection')">Collections</a></li>
+      <li><a onclick="scrollToAbout()">About</a></li>
+      <li><a onclick="scrollToContact()">Contact</a></li>
+    </ul>
+    <div class="nav-right">
+      <div class="search-box">
+        <input type="text" id="search-input" placeholder="Search hijabs..."
+               oninput="handleSearch(this.value)"/>
+        <span>🔍</span>
+      </div>
+      <div id="admin-nav-btn" style="display:none;">
+        <div class="account-btn" style="background:#3a2e27;color:#c9a87c;" onclick="showAdminPage()">
+          ⚙️ Admin
+        </div>
+      </div>
+      <div class="account-btn" onclick="handleAccountClick()">
+        👤 <span id="nav-account-label">Login</span>
+      </div>
+      <div class="cart-icon" onclick="openCart()">🛒
+        <span class="cart-count" id="cart-count">0</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero" id="home">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <div class="hero-text">
+        <h1>Discover Your Perfect Modesty</h1>
+        <p>Elegance in every drape. Find your style.</p>
+        <a class="hero-btn" onclick="scrollToProducts()">Shop Now</a>
+      </div>
+      <div class="hero-img-right"><img src="pho.jpg" alt="Model"/></div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section class="about" id="about">
+    <div class="about-text">
+      <h2>Made with love in our team</h2>
+      <p>We take pride in wearing the hijab. Our mission is to provide the best hijab experience.</p>
+      <ul class="about-list">
+        <li>✓ Credibility</li><li>✓ Quality</li>
+        <li>✓ Price</li><li>✓ Sustainability</li>
+        <li>✓ Level of service and support</li>
+        <li>✓ Change the world through charity</li>
+      </ul>
+      <a class="read-more-btn">READ MORE</a>
+    </div>
+    <div class="about-img"><img src="3d8df27e29ffffd4aa1d397bdeea2f8c.jpg" alt="About"/></div>
+  </section>
+
+  <!-- BEST SELLERS -->
+  <section class="products" id="products">
+    <h2>Best Sellers</h2>
+    <p class="products-sub">Breathable, eco-friendly hijabs that keep you cool and comfortable.</p>
+    <div class="products-grid" id="best-sellers-container"></div>
+    <div style="text-align:center;padding:50px 0 10px;">
+      <a class="collections-link-btn" onclick="showPage('new-collection')">Shop by Collection</a>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer" id="contact">
+    <div class="footer-top">
+      <div class="footer-logo"><img src="logo.jpg" alt="Logo"/></div>
+      <h2>DISCOVER THE BEAUTY<br>OF MODERN MODESTY.</h2>
+      <div class="footer-tagline">
+        <p>Embrace your essence with conscious elegance.</p>
+        <a onclick="openAuth()">Join Us</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-logo-big"><img src="logo.jpg" alt="Logo"/></div>
+      <div class="footer-links">
+        <div class="footer-col">
+          <h4>SHOP</h4>
+          <a onclick="scrollToProducts()">Best Sellers</a>
+          <a onclick="showPage('new-collection')">New Collection</a>
+        </div>
+        <div class="footer-col">
+          <h4>ABOUT</h4>
+          <a onclick="scrollToAbout()">Our Story</a>
+          <a onclick="scrollToAbout()">Sustainability</a>
+        </div>
+        <div class="footer-col">
+          <h4>CONTACT</h4>
+          <a onclick="window.open('https://wa.me/201201326563','_blank')">WhatsApp Us</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+</div>
+
+<script src="script.js"></script>
+<script>
+/* ═══════════════════════════════════════════
+   ADMIN FUNCTIONS
+   ═══════════════════════════════════════════ */
+
+// Reference to default products defined in script.js
+// DEFAULT_PRODUCTS is available globally from script.js
+
+// Hardcoded admin credentials (for demo/initial setup)
+const ADMIN_EMAIL = 'admin@haj.com';
+const ADMIN_PASSWORD = 'admin123';
+
+let isAdminLoggedIn = false;
+
+function showAdminPage() {
+  // Hide ALL pages first
+  ['main-page','checkout-page','new-collection-page','account-page','success-page','admin-page'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  // Close cart if open
+  closeCart();
+  closeAuth();
+
+  const adminPage = document.getElementById('admin-page');
+  if (adminPage) adminPage.style.display = 'block';
+
+  // Check if already logged in as admin
+  const adminToken = localStorage.getItem('adminToken');
+  if (adminToken === 'admin_session_2025') {
+    showAdminDashboard();
+  } else {
+    showAdminLogin();
+  }
+  window.scrollTo(0,0);
+}
+
+function showAdminLogin() {
+  const loginScreen = document.getElementById('admin-login-screen');
+  const dashboard = document.getElementById('admin-dashboard');
+  if (loginScreen) loginScreen.style.display = 'flex';
+  if (dashboard) dashboard.style.display = 'none';
+}
+
+function showAdminDashboard() {
+  const loginScreen = document.getElementById('admin-login-screen');
+  const dashboard = document.getElementById('admin-dashboard');
+  if (loginScreen) loginScreen.style.display = 'none';
+  if (dashboard) dashboard.style.display = 'block';
+  loadAdminData();
+}
+
+function adminLogin() {
+  const email = document.getElementById('admin-email').value.trim();
+  const password = document.getElementById('admin-password').value;
+  const errorEl = document.getElementById('admin-login-error');
+
+  if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+    localStorage.setItem('adminToken', 'admin_session_2025');
+    isAdminLoggedIn = true;
+    if (errorEl) errorEl.innerText = '';
+    showAdminDashboard();
+  } else {
+    if (errorEl) errorEl.innerText = '❌ Wrong email or password';
+  }
+}
+
+function adminLogout() {
+  localStorage.removeItem('adminToken');
+  isAdminLoggedIn = false;
+  showAdminLogin();
+}
+
+function switchAdminTab(tab) {
+  document.querySelectorAll('.admin-tab-btn').forEach(btn => btn.classList.remove('active'));
+  document.querySelectorAll('.admin-tab-panel').forEach(panel => panel.classList.remove('active'));
+
+  event.target.classList.add('active');
+  const panel = document.getElementById('tab-' + tab);
+  if (panel) panel.classList.add('active');
+
+  if (tab === 'products') {
+    if (typeof renderAdminProductsList === 'function') renderAdminProductsList();
+  }
+}
+
+async function loadAdminData() {
+  try {
+    // Try to load from API first
+    const statsData = await apiRequest('/admin/stats');
+    if (statsData.stats) {
+      document.getElementById('stat-revenue').innerText = statsData.stats.totalRevenue + ' EG';
+      document.getElementById('stat-orders').innerText = statsData.stats.totalOrders;
+      document.getElementById('stat-users').innerText = statsData.stats.totalUsers;
+      document.getElementById('stat-pending').innerText = statsData.stats.pendingOrders;
+    }
+
+    const ordersData = await apiRequest('/admin/orders');
+    renderAdminOrders(ordersData.orders || []);
+
+    const usersData = await apiRequest('/admin/users');
+    renderAdminUsers(usersData.users || []);
+  } catch (e) {
+    console.log('Admin API failed, showing demo data');
+    showDemoAdminData();
+  }
+}
+
+function showDemoAdminData() {
+  document.getElementById('stat-revenue').innerText = '0 EG';
+  document.getElementById('stat-orders').innerText = '0';
+  document.getElementById('stat-users').innerText = '2';
+  document.getElementById('stat-pending').innerText = '0';
+
+  document.getElementById('admin-orders-table').innerHTML = 
+    '<div class="admin-empty"><p>📦</p><p>No orders yet</p></div>';
+
+  document.getElementById('admin-users-table').innerHTML = `
+    <table>
+      <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Orders</th></tr></thead>
+      <tbody>
+        <tr><td>user_1</td><td>halaa</td><td>jg@gmail.com</td><td><span class="abadge abadge-user">user</span></td><td>0</td></tr>
+        <tr><td>user_2</td><td>halaa</td><td>jgii@gmail.com</td><td><span class="abadge abadge-user">user</span></td><td>0</td></tr>
+      </tbody>
+    </table>
+  `;
+}
+
+function renderAdminOrders(orders) {
+  const container = document.getElementById('admin-orders-table');
+  if (!orders || orders.length === 0) {
+    container.innerHTML = '<div class="admin-empty"><p>📦</p><p>No orders yet</p></div>';
+    return;
+  }
+
+  container.innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>Order #</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th><th>Date</th><th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${orders.map(o => `
+          <tr>
+            <td>${o.orderNumber || o.id}</td>
+            <td>${o.shippingInfo?.fullName || 'N/A'}</td>
+            <td>${o.items ? o.items.map(i => i.name).join(', ') : ''}</td>
+            <td>${o.totalAmount || 0} EG</td>
+            <td><span class="abadge abadge-${o.orderStatus || 'pending'}">${o.orderStatus || 'pending'}</span></td>
+            <td>${o.createdAt ? new Date(o.createdAt).toLocaleDateString() : 'N/A'}</td>
+            <td>
+              <select class="status-select" onchange="updateOrderStatus('${o.id}', this.value)">
+                <option value="pending" ${o.orderStatus === 'pending' ? 'selected' : ''}>Pending</option>
+                <option value="processing" ${o.orderStatus === 'processing' ? 'selected' : ''}>Processing</option>
+                <option value="shipped" ${o.orderStatus === 'shipped' ? 'selected' : ''}>Shipped</option>
+                <option value="delivered" ${o.orderStatus === 'delivered' ? 'selected' : ''}>Delivered</option>
+                <option value="cancelled" ${o.orderStatus === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+              </select>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+function renderAdminUsers(users) {
+  const container = document.getElementById('admin-users-table');
+  if (!users || users.length === 0) {
+    container.innerHTML = '<div class="admin-empty"><p>👤</p><p>No users found</p></div>';
+    return;
+  }
+
+  container.innerHTML = `
+    <table>
+      <thead>
+        <tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Orders</th><th>Joined</th></tr>
+      </thead>
+      <tbody>
+        ${users.map(u => `
+          <tr>
+            <td>${u.id}</td>
+            <td>${u.name}</td>
+            <td>${u.email}</td>
+            <td><span class="abadge abadge-${u.role || 'user'}">${u.role || 'user'}</span></td>
+            <td>${u.ordersCount || 0}</td>
+            <td>${u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'N/A'}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+async function updateOrderStatus(orderId, status) {
+  try {
+    await apiRequest('/admin/orders/' + orderId + '/status', {
+      method: 'PUT',
+      body: JSON.stringify({ status })
+    });
+    alert('✅ Order status updated to: ' + status);
+    loadAdminData();
+  } catch (e) {
+    alert('❌ Failed to update status: ' + e.message);
+  }
+}
+
+async function adminSeedProducts() {
+  const btn = document.getElementById('seed-btn');
+  const existing = await apiRequest('/products').catch(() => ({ products: [] }));
+  if (existing.products && existing.products.length > 0) {
+    if (!confirm(`في ${existing.products.length} منتج بالفعل. عايز تضيف الـ default products فوقيهم؟`)) return;
+  }
+  if (btn) { btn.innerText = '⏳ Loading...'; btn.disabled = true; }
+  try {
+    for (const p of DEFAULT_PRODUCTS) {
+      await apiRequest('/products', {
+        method: 'POST',
+        body: JSON.stringify({ ...p, isBestSeller: false })
+      });
+    }
+    await renderAdminProductsList();
+    buildNewCollection();
+    buildBestSellers();
+    if (btn) { btn.innerText = '✅ Done!'; btn.style.background = '#c8e6c9'; }
+    setTimeout(() => {
+      if (btn) { btn.innerText = '🌱 Load Default Products'; btn.style.background = ''; btn.disabled = false; }
+    }, 2000);
+  } catch (e) {
+    alert('❌ فشل: ' + e.message);
+    if (btn) { btn.innerText = '🌱 Load Default Products'; btn.disabled = false; }
+  }
+}
+
+// Check if admin on page load
+function checkAdminStatus() {
+  const adminToken = localStorage.getItem('adminToken');
+  const adminBtn = document.getElementById('admin-nav-btn');
+
+  if (adminToken === 'admin_session_2025' && adminBtn) {
+    adminBtn.style.display = 'block';
+  }
+}
+
+// Override loginUser to show admin button for admin users
+const originalLoginUser = loginUser;
+loginUser = function(user) {
+  originalLoginUser(user);
+  if (user && user.role === 'admin') {
+    const adminBtn = document.getElementById('admin-nav-btn');
+    if (adminBtn) adminBtn.style.display = 'block';
+  }
+};
+
+</script>
+
+
+<!-- ====================================================
+  ADMIN PAGE
+==================================================== -->
+<div id="admin-page" style="display:none;">
+  <div class="admin-nav-bar">
+    <div class="admin-logo">⚙️ Haj Admin</div>
+    <div class="admin-greeting" id="admin-greeting">Welcome, Admin</div>
+    <button class="admin-logout-btn" onclick="adminLogout()">Logout</button>
   </div>
 
-  <div class="content-area">
-    <aside id="sidebar" class="hide">
-      <nav>
-        <a href="#" class="nav-link active" data-section="home" id="home-link">
-          <i class="material-icons">home</i>
-          <span>Home</span>
-        </a>
-        <a href="favorite.html" class="nav-link">
-          <i class="material-icons">favorite</i>
-          <span>Favorite</span>
-        </a>
-        <hr>
-        <a href="#" id="contact-btn" class="nav-link">
-          <i class="material-icons">call</i>
-          <span>Contact Us</span>
-        </a>
-        <div id="contact-space" class="hide">
-          <h3>Contact Us</h3>
-          <p>You can reach us at: <a href="https://chat.whatsapp.com/GPGxHgjs4iT6aSeLt08cys?mode=gi_t">Open this link to join my group</a></p>
-          <p>Or call: <a href="tel:+20 12 70191608">20 12 70191608</a></p>
-        </div>
-        <a href="logout.html" class="nav-link">
-          <i class="material-icons">logout</i>
-          <span>Log Out</span>
-        </a>
-      </nav>
-    </aside>
-
-    <main>
-      <section class="hero">
-        <div class="hero-left">
-          <h2 class="Cursive">MSSK Care</h2>
-          <p>Because your health matters the most.</p>
-          <a href="products.html">
-            <button>Shop Now</button>
-          </a>
-        </div>
-      </section>
-
-      <section class="categories">
-        <h2>Shop by Category</h2>
-        <div class="category-row">
-          <a href="products.html#cosmetics" class="category-item">
-            <img src="assets/images/cosmetics main.jpeg" alt="Cosmetics">
-            <h4>Cosmetics</h4>
-          </a>
-          <a href="products.html#mom-baby" class="category-item">
-            <img src="assets/images/mom and babys main .jpg" alt="Mom & Baby">
-            <h4>Mom & Baby</h4>
-          </a>
-          <a href="products.html#first-aid" class="category-item">
-            <img src="assets/images/first aid main.jpeg" alt="First Aid">
-            <h4>First Aid</h4>
-          </a>
-          <a href="products.html#medicines" class="category-item">
-            <img src="assets/images/medicines main.jpeg" alt="Medicines">
-            <h4>Medicines</h4>
-          </a>
-          <a href="products.html#vitamns" class="category-item">
-            <img src="assets/images/vitamins main.jpeg" alt="Vitamns">
-            <h4>Vitamns</h4>
-          </a>
-        </div>
-      </section>
-
-      <section class="why-choose-us">
-        <h2>Why Choose Us?</h2>
-        <div class="features">
-          <div class="feature">
-            <i class="material-icons">local_shipping</i>
-            <h4>Fast Delivery</h4>
-            <p><h4>Get your medicines delivered quickly at your doorstep.</h4></p>
-          </div>
-          <div class="feature">
-            <i class="material-icons">verified</i>
-            <h4>100% Original</h4>
-            <p><h4>All products are genuine and carefully verified.</h4></p>
-          </div>
-          <div class="feature">
-            <i class="material-icons">support_agent</i>
-            <h4>24/7 Support</h4>
-            <p><h4>Our team is here to help you anytime, anywhere.</h4></p>
-          </div>
-        </div>
-      </section>
-
-      <section class="about-us">
-        <h2>About Us</h2>
-        <p>MSSK Pharmacy is dedicated to providing high-quality healthcare products with fast delivery and trusted service. Learn more about us through the links below.</p>
-        <div class="about-links">
-          <a href="#">Our Story</a>
-          <a href="#">Our Mission</a>
-          <a href="#">Privacy Policy</a>
-          <a href="#">Terms & Conditions</a>
-          <a href="#">Careers</a>
-          <a href="#">Support Center</a>
-          <a href="#">FAQs</a>
-          <a href="#">Contact Team</a>
-        </div>
-      </section>
-    </main>
+  <!-- Admin Login Screen -->
+  <div class="admin-login-screen" id="admin-login-screen">
+    <div class="admin-login-card">
+      <h2>🔐 Admin Access</h2>
+      <p>Enter your admin credentials to continue</p>
+      <div class="admin-field">
+        <label>Email</label>
+        <input type="email" id="admin-email" placeholder="admin@haj.com" value="admin@haj.com"/>
+      </div>
+      <div class="admin-field">
+        <label>Password</label>
+        <input type="password" id="admin-password" placeholder="Enter password"/>
+      </div>
+      <p class="admin-login-error" id="admin-login-error"></p>
+      <button class="admin-login-btn" onclick="adminLogin()">Login as Admin</button>
+      <p style="text-align:center;margin-top:16px;font-size:12px;color:#9e8e82;">
+        <a onclick="showPage('main')" style="cursor:pointer;">← Back to Store</a>
+      </p>
+    </div>
   </div>
 
-  <script src="assets/scripts/script.js"></script>
+  <!-- Admin Dashboard -->
+  <div class="admin-dashboard" id="admin-dashboard">
+    <div class="dash-body">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">TOTAL REVENUE</div>
+          <div class="stat-value gold" id="stat-revenue">0 EG</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">TOTAL ORDERS</div>
+          <div class="stat-value" id="stat-orders">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">TOTAL USERS</div>
+          <div class="stat-value green" id="stat-users">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">PENDING</div>
+          <div class="stat-value orange" id="stat-pending">0</div>
+        </div>
+      </div>
+
+      <div class="admin-tabs">
+        <button class="admin-tab-btn active" onclick="switchAdminTab('orders')">📦 Orders</button>
+        <button class="admin-tab-btn" onclick="switchAdminTab('users')">👤 Users</button>
+        <button class="admin-tab-btn" onclick="switchAdminTab('products')">🛍️ Products</button>
+      </div>
+
+      <!-- Orders Tab -->
+      <div class="admin-tab-panel active" id="tab-orders">
+        <div class="admin-table-card">
+          <div class="admin-table-header">
+            <h3>All Orders</h3>
+            <button class="admin-refresh-btn" onclick="loadAdminData()">🔄 Refresh</button>
+          </div>
+          <div id="admin-orders-table">
+            <div class="admin-loading">Loading orders...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Users Tab -->
+      <div class="admin-tab-panel" id="tab-users">
+        <div class="admin-table-card">
+          <div class="admin-table-header">
+            <h3>All Users</h3>
+            <button class="admin-refresh-btn" onclick="loadAdminData()">🔄 Refresh</button>
+          </div>
+          <div id="admin-users-table">
+            <div class="admin-loading">Loading users...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Products Tab -->
+      <div class="admin-tab-panel" id="tab-products">
+
+        <!-- Add Product Form -->
+        <div class="admin-table-card" style="margin-bottom:24px;">
+          <div class="admin-table-header">
+            <h3>➕ Add New Product</h3>
+          </div>
+          <div style="padding:24px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+              <div class="admin-field">
+                <label>Product Name *</label>
+                <input type="text" id="prod-name" placeholder="e.g. Chiffon Hijab"/>
+              </div>
+              <div class="admin-field">
+                <label>Price (EG) *</label>
+                <input type="number" id="prod-price" placeholder="e.g. 150"/>
+              </div>
+            </div>
+
+            <!-- Image Upload Area -->
+            <div class="admin-field">
+              <label>Product Images * <span style="font-weight:400;color:#9e8e82;">(يمكنك رفع أكتر من صورة)</span></label>
+              <div class="prod-img-upload-area" id="prod-img-drop" onclick="document.getElementById('prod-img-input').click()">
+                <div class="prod-upload-icon">📁</div>
+                <p class="prod-upload-text">اضغط هنا أو اسحب الصور</p>
+                <p class="prod-upload-sub">PNG, JPG, WEBP مقبولة</p>
+                <input type="file" id="prod-img-input" multiple accept="image/*" style="display:none" onchange="handleProductImages(this)"/>
+              </div>
+              <div id="prod-img-previews" class="prod-img-previews"></div>
+            </div>
+
+            <p id="prod-form-error" style="color:#e07070;font-size:12px;min-height:16px;margin-bottom:8px;"></p>
+            <button class="admin-login-btn" style="width:auto;padding:12px 36px;" onclick="addProduct()">✅ Add Product</button>
+          </div>
+        </div>
+
+        <!-- Products List -->
+        <div class="admin-table-card">
+          <div class="admin-table-header">
+            <h3>📦 All Products</h3>
+            <div style="display:flex;gap:10px;align-items:center;">
+              <span id="products-count" style="font-size:13px;color:#9e8e82;"></span>
+              <button class="admin-refresh-btn" onclick="adminSeedProducts()" id="seed-btn">
+                🌱 Load Default Products
+              </button>
+            </div>
+          </div>
+          <div id="admin-products-list" style="padding:16px;">
+            <div class="admin-loading">Loading products...</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
 </body>
 </html>

@@ -1,239 +1,313 @@
 const express = require('express');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const fs = require('fs');
-const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const JWT_SECRET = process.env.JWT_SECRET || 'haj_secret_key_2025';
+const DB_FILE = 'database.json';
 
-// Middleware
+// ── Middleware ────────────────────────────────────────────
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
 app.use(express.static(__dirname));
 
-app.get('/', (req, res) => {
-  res.redirect('/logout.html');
-}); // ✅ بيقرأ الملفات من نفس فولدر server.js
-
-// ===== DATA FILES =====
-const DATA_DIR = path.join(__dirname, 'data');
-if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR);
-
-const USERS_FILE = path.join(DATA_DIR, 'users.json');
-const PRODUCTS_FILE = path.join(DATA_DIR, 'products.json');
-const ORDERS_FILE = path.join(DATA_DIR, 'orders.json');
-const CARTS_FILE = path.join(DATA_DIR, 'carts.json');
-const FAVORITES_FILE = path.join(DATA_DIR, 'favorites.json');
-
-function readJSON(filePath, defaultValue = []) {
-  if (!fs.existsSync(filePath)) {
-    fs.writeFileSync(filePath, JSON.stringify(defaultValue, null, 2));
-    return defaultValue;
+// ── Database Helpers ──────────────────────────────────────
+function readDB() {
+  if (!fs.existsSync(DB_FILE)) {
+    const init = { users: {}, orders: {}, products: {}, nextId: 1 };
+    fs.writeFileSync(DB_FILE, JSON.stringify(init, null, 2));
+    return init;
   }
-  try { return JSON.parse(fs.readFileSync(filePath, 'utf8')); }
-  catch { return defaultValue; }
+  return JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
 }
 
-function writeJSON(filePath, data) {
-  fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+function writeDB(data) {
+  fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
 }
 
-// ===== DEFAULT DATA =====
-function initData() {
-  if (!fs.existsSync(USERS_FILE)) {
-    writeJSON(USERS_FILE, [
-      { id: 1, username: 'admin', password: '1234', name: 'Administrator', email: 'admin@mssk.com', role: 'admin' },
-      { id: 2, username: 'user', password: '1234', name: 'Demo User', email: 'user@example.com', role: 'customer' }
-    ]);
+// ── Auth Middleware ───────────────────────────────────────
+function authMiddleware(req, res, next) {
+  const token = (req.headers['authorization'] || '').split(' ')[1];
+  if (!token) return res.status(401).json({ success: false, message: 'No token provided' });
+  try {
+    req.userId = jwt.verify(token, JWT_SECRET).userId;
+    next();
+  } catch {
+    return res.status(401).json({ success: false, message: 'Invalid token' });
   }
-  if (!fs.existsSync(PRODUCTS_FILE)) {
-    writeJSON(PRODUCTS_FILE, [
-      { id: 1, name: 'Cosmetics Kit 1', category: 'Cosmetics', price: 550, stock: 20, image: 'assets/images/cos2.jpg' },
-      { id: 2, name: 'Cosmetics Kit 2', category: 'Cosmetics', price: 450, stock: 15, image: 'assets/images/cos1.jpg' },
-      { id: 3, name: 'Cosmetics Kit 3', category: 'Cosmetics', price: 357, stock: 30, image: 'assets/images/cos3.jpg' },
-      { id: 4, name: 'Mom & Baby Set 1', category: 'Mom & Baby', price: 100, stock: 50, image: 'assets/images/baby1.jpg' },
-      { id: 5, name: 'Mom & Baby Set 2', category: 'Mom & Baby', price: 500, stock: 25, image: 'assets/images/baby2.jpg' },
-      { id: 6, name: 'Mom & Baby Set 3', category: 'Mom & Baby', price: 400, stock: 40, image: 'assets/images/baby3.jpg' },
-      { id: 7, name: 'First Aid Kit 1', category: 'First Aid', price: 28000, stock: 5, image: 'assets/images/aid1.jpg' },
-      { id: 8, name: 'First Aid Kit 2', category: 'First Aid', price: 100, stock: 100, image: 'assets/images/aid22.jpg' },
-      { id: 9, name: 'First Aid Kit 3', category: 'First Aid', price: 265, stock: 60, image: 'assets/images/aid3.jpg' },
-      { id: 10, name: 'Pil 1', category: 'Medicines', price: 40, stock: 200, image: 'assets/images/pil1.jpeg' },
-      { id: 11, name: 'Pil 2', category: 'Medicines', price: 80, stock: 150, image: 'assets/images/pil2.jpeg' },
-      { id: 12, name: 'Pil 3', category: 'Medicines', price: 100, stock: 120, image: 'assets/images/pil3.jpeg' },
-      { id: 13, name: 'Vitamin 1', category: 'Vitamins', price: 650, stock: 80, image: 'assets/images/v1.jpeg' },
-      { id: 14, name: 'Vitamin 2', category: 'Vitamins', price: 1750, stock: 30, image: 'assets/images/v2.jpeg' },
-      { id: 15, name: 'Vitamin 3', category: 'Vitamins', price: 899, stock: 45, image: 'assets/images/v3.jpeg' }
-    ]);
-  }
-  if (!fs.existsSync(ORDERS_FILE)) writeJSON(ORDERS_FILE, []);
-  if (!fs.existsSync(CARTS_FILE)) writeJSON(CARTS_FILE, {});
-  if (!fs.existsSync(FAVORITES_FILE)) writeJSON(FAVORITES_FILE, {});
 }
-initData();
 
-// ===== AUTH =====
-app.post('/api/auth/login', (req, res) => {
-  const { username, password } = req.body;
-  const users = readJSON(USERS_FILE);
-  const user = users.find(u => u.username === username && u.password === password);
-  if (!user) return res.status(401).json({ success: false, message: 'Invalid username or password' });
-  const { password: _, ...safe } = user;
-  res.json({ success: true, user: safe });
-});
+function adminMiddleware(req, res, next) {
+  const db = readDB();
+  const user = db.users[req.userId];
+  if (!user || user.role !== 'admin')
+    return res.status(403).json({ success: false, message: 'Admin access required' });
+  next();
+}
 
-app.post('/api/auth/register', (req, res) => {
-  const { username, password, name, email } = req.body;
-  const users = readJSON(USERS_FILE);
-  if (users.find(u => u.username === username))
-    return res.status(400).json({ success: false, message: 'Username already exists' });
-  const newUser = { id: Date.now(), username, password, name: name || username, email: email || '', role: 'customer' };
-  users.push(newUser);
-  writeJSON(USERS_FILE, users);
-  const { password: _, ...safe } = newUser;
-  res.json({ success: true, user: safe });
-});
+// ── Root ──────────────────────────────────────────────────
+app.get('/', (req, res) => res.json({ success: true, message: 'Haj API شغال ✅' }));
 
-// ===== PRODUCTS =====
-app.get('/api/products', (req, res) => res.json(readJSON(PRODUCTS_FILE)));
+// ════════════════════════════════════════════
+//  AUTH  /api/auth/...
+// ════════════════════════════════════════════
 
-app.post('/api/products', (req, res) => {
-  const products = readJSON(PRODUCTS_FILE);
-  const newProduct = {
-    id: Date.now(),
-    name: req.body.name,
-    category: req.body.category,
-    price: parseFloat(req.body.price),
-    stock: parseInt(req.body.stock) || 0,
-    image: req.body.image || 'assets/images/pharmacy2.jpeg'
-  };
-  products.push(newProduct);
-  writeJSON(PRODUCTS_FILE, products);
-  res.json({ success: true, product: newProduct });
-});
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+    if (!name || !email || !password)
+      return res.status(400).json({ success: false, message: 'كل الحقول مطلوبة' });
+    if (password.length < 6)
+      return res.status(400).json({ success: false, message: 'الباسورد لازم يكون 6 حروف على الأقل' });
 
-app.put('/api/products/:id', (req, res) => {
-  const products = readJSON(PRODUCTS_FILE);
-  const index = products.findIndex(p => p.id == req.params.id);
-  if (index === -1) return res.status(404).json({ success: false, message: 'Product not found' });
-  products[index] = { ...products[index], ...req.body };
-  writeJSON(PRODUCTS_FILE, products);
-  res.json({ success: true, product: products[index] });
-});
+    const db = readDB();
+    if (Object.values(db.users).find(u => u.email === email))
+      return res.status(400).json({ success: false, message: 'الإيميل ده مسجل قبل كده' });
 
-app.delete('/api/products/:id', (req, res) => {
-  let products = readJSON(PRODUCTS_FILE);
-  products = products.filter(p => p.id != req.params.id);
-  writeJSON(PRODUCTS_FILE, products);
-  res.json({ success: true });
-});
+    const userId = 'user_' + (db.nextId || 1);
+    db.nextId = (db.nextId || 1) + 1;
+    db.users[userId] = {
+      id: userId, name, email,
+      password: await bcrypt.hash(password, 10),
+      address: '', phone: '', orders: [], cart: [],
+      role: 'user', createdAt: new Date().toISOString()
+    };
+    writeDB(db);
 
-// ===== ORDERS =====
-app.get('/api/orders', (req, res) => res.json(readJSON(ORDERS_FILE)));
-
-app.post('/api/orders', (req, res) => {
-  const orders = readJSON(ORDERS_FILE);
-  const { customer, items, total, address, phone, paymentMethod } = req.body;
-  const newOrder = {
-    id: 'ORD-' + Date.now(),
-    customer: customer || 'Guest',
-    items: items || [],
-    total: parseFloat(total) || 0,
-    address: address || '',
-    phone: phone || '',
-    paymentMethod: paymentMethod || 'cash',
-    status: 'pending',
-    date: new Date().toLocaleDateString()
-  };
-  orders.push(newOrder);
-  writeJSON(ORDERS_FILE, orders);
-  const products = readJSON(PRODUCTS_FILE);
-  (items || []).forEach(item => {
-    const prod = products.find(p => p.name === item.name);
-    if (prod) prod.stock = Math.max(0, prod.stock - 1);
-  });
-  writeJSON(PRODUCTS_FILE, products);
-  res.json({ success: true, order: newOrder });
-});
-
-app.put('/api/orders/:id', (req, res) => {
-  const orders = readJSON(ORDERS_FILE);
-  const index = orders.findIndex(o => o.id === req.params.id);
-  if (index === -1) return res.status(404).json({ success: false, message: 'Order not found' });
-  orders[index] = { ...orders[index], ...req.body };
-  writeJSON(ORDERS_FILE, orders);
-  res.json({ success: true, order: orders[index] });
-});
-
-// ===== CART =====
-app.get('/api/cart/:userId', (req, res) => {
-  const carts = readJSON(CARTS_FILE);
-  res.json(carts[req.params.userId] || []);
-});
-app.post('/api/cart/:userId', (req, res) => {
-  const carts = readJSON(CARTS_FILE);
-  if (!carts[req.params.userId]) carts[req.params.userId] = [];
-  carts[req.params.userId].push(req.body);
-  writeJSON(CARTS_FILE, carts);
-  res.json({ success: true, cart: carts[req.params.userId] });
-});
-app.delete('/api/cart/:userId/:index', (req, res) => {
-  const carts = readJSON(CARTS_FILE);
-  if (carts[req.params.userId]) carts[req.params.userId].splice(parseInt(req.params.index), 1);
-  writeJSON(CARTS_FILE, carts);
-  res.json({ success: true });
-});
-app.delete('/api/cart/:userId', (req, res) => {
-  const carts = readJSON(CARTS_FILE);
-  carts[req.params.userId] = [];
-  writeJSON(CARTS_FILE, carts);
-  res.json({ success: true });
-});
-
-// ===== FAVORITES =====
-app.get('/api/favorites/:userId', (req, res) => {
-  const favorites = readJSON(FAVORITES_FILE);
-  res.json(favorites[req.params.userId] || []);
-});
-app.post('/api/favorites/:userId', (req, res) => {
-  const favorites = readJSON(FAVORITES_FILE);
-  if (!favorites[req.params.userId]) favorites[req.params.userId] = [];
-  const exists = favorites[req.params.userId].find(f => f.name === req.body.name);
-  if (!exists) { favorites[req.params.userId].push(req.body); writeJSON(FAVORITES_FILE, favorites); }
-  res.json({ success: true, favorites: favorites[req.params.userId] });
-});
-app.delete('/api/favorites/:userId/:productName', (req, res) => {
-  const favorites = readJSON(FAVORITES_FILE);
-  if (favorites[req.params.userId]) {
-    favorites[req.params.userId] = favorites[req.params.userId].filter(
-      f => f.name !== decodeURIComponent(req.params.productName)
-    );
-    writeJSON(FAVORITES_FILE, favorites);
+    const token = jwt.sign({ userId }, JWT_SECRET, { expiresIn: '30d' });
+    const { password: _, ...userSafe } = db.users[userId];
+    return res.status(201).json({ success: true, token, user: userSafe });
+  } catch (e) {
+    console.error('Register error:', e);
+    return res.status(500).json({ success: false, message: 'Server error' });
   }
-  res.json({ success: true });
 });
 
-// ===== USERS =====
-app.get('/api/users', (req, res) => {
-  const users = readJSON(USERS_FILE);
-  res.json(users.map(({ password, ...u }) => u));
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password)
+      return res.status(400).json({ success: false, message: 'كل الحقول مطلوبة' });
+
+    const db = readDB();
+    const user = Object.values(db.users).find(u => u.email === email);
+    if (!user || !(await bcrypt.compare(password, user.password)))
+      return res.status(401).json({ success: false, message: 'الإيميل أو الباسورد غلط' });
+
+    const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '30d' });
+    const { password: _, ...userSafe } = user;
+    return res.json({ success: true, token, user: userSafe });
+  } catch (e) {
+    console.error('Login error:', e);
+    return res.status(500).json({ success: false, message: 'Server error' });
+  }
 });
 
-// ===== STATS =====
-app.get('/api/stats', (req, res) => {
-  const products = readJSON(PRODUCTS_FILE);
-  const orders = readJSON(ORDERS_FILE);
-  const users = readJSON(USERS_FILE);
-  res.json({
-    totalRevenue: orders.reduce((sum, o) => sum + (o.total || 0), 0),
-    totalOrders: orders.length,
-    totalProducts: products.length,
-    totalUsers: users.length,
-    lowStock: products.filter(p => p.stock < 10).length
-  });
+app.get('/api/auth/me', authMiddleware, (req, res) => {
+  try {
+    const db = readDB();
+    const user = db.users[req.userId];
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+    const { password: _, ...userSafe } = user;
+    return res.json({ success: true, user: userSafe });
+  } catch (e) {
+    return res.status(500).json({ success: false, message: 'Server error' });
+  }
 });
 
-// ===== START =====
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`✅ MSSK Server running on http://localhost:${PORT}`);
-  console.log(`📂 Serving files from: ${__dirname}`);
+app.put('/api/auth/profile', authMiddleware, (req, res) => {
+  try {
+    const db = readDB();
+    const user = db.users[req.userId];
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+    const { address, phone, name } = req.body;
+    if (address !== undefined) user.address = address;
+    if (phone   !== undefined) user.phone   = phone;
+    if (name    !== undefined) user.name    = name;
+    writeDB(db);
+    const { password: _, ...userSafe } = user;
+    return res.json({ success: true, user: userSafe });
+  } catch (e) {
+    return res.status(500).json({ success: false, message: 'Server error' });
+  }
 });
+
+// ════════════════════════════════════════════
+//  PRODUCTS  /api/products/...
+// ════════════════════════════════════════════
+
+app.get('/api/products', (req, res) => {
+  try {
+    const db = readDB();
+    return res.json({ success: true, products: Object.values(db.products || {}) });
+  } catch (e) {
+    return res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+app.get('/api/products/bestsellers/list', (req, res) => {
+  try {
+    const db = readDB();
+    const products = Object.values(db.products || {})
+      .filter(p => p.isBestSeller === true);
+    return res.json({ success: true, products });
+  } catch (e) {
+    return res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+app.post('/api/products', authMiddleware, adminMiddleware, (req, res) => {
+  try {
+   const { name, price, images, isBestSeller } = req.body;
+    if (!name || !price)
+      return res.status(400).json({ success: false, message: 'Name and price required' });
+
+    const db = readDB();
+    if (!db.products) db.products = {};
+
+    const productId = 'prod_' + Date.now();
+    db.products[productId] = {
+      id: productId,
+      name,
+      price: Number(price),
+     images: images || [],
+      isBestSeller: isBestSeller || false,
+      createdAt: new Date().toISOString()
+    };
+    writeDB(db);
+    return res.status(201).json({ success: true, product: db.products[productId] });
+  } catch (e) {
+    return res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+app.put('/api/products/:id', authMiddleware, adminMiddleware, (req, res) => {
+  try {
+    const db = readDB();
+    const product = db.products?.[req.params.id];
+    if (!product) return res.status(404).json({ success: false, message: 'Product not found' });
+    const { name, price, isBestSeller } = req.body;
+    if (name !== undefined) product.name = name;
+    if (price !== undefined) product.price = Number(price);
+    if (isBestSeller !== undefined) product.isBestSeller = isBestSeller;
+    writeDB(db);
+    return res.json({ success: true, product });
+  } catch (e) {
+    return res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+app.delete('/api/products/:id', authMiddleware, adminMiddleware, (req, res) => {
+  try {
+    const db = readDB();
+    if (!db.products?.[req.params.id])
+      return res.status(404).json({ success: false, message: 'Product not found' });
+    delete db.products[req.params.id];
+    writeDB(db);
+    return res.json({ success: true });
+  } catch (e) {
+    return res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+// ════════════════════════════════════════════
+//  ORDERS  /api/orders/...
+// ════════════════════════════════════════════
+
+app.post('/api/orders', authMiddleware, (req, res) => {
+  try {
+    const { items, shippingInfo, paymentMethod } = req.body;
+    if (!items || !shippingInfo?.fullName || !shippingInfo?.phone || !shippingInfo?.address)
+      return res.status(400).json({ success: false, message: 'بيانات الأوردر ناقصة' });
+
+    const db = readDB();
+    if (!db.orders) db.orders = {};
+
+    const orderId = 'order_' + Date.now();
+    const order = {
+      id: orderId,
+      orderNumber: 'HAJ-' + Date.now().toString().slice(-6),
+      userId: req.userId,
+      items,
+      shippingInfo,
+      paymentMethod: paymentMethod || 'cash',
+      totalAmount: items.reduce((s, i) => s + i.price * (i.quantity || 1), 0),
+      orderStatus: 'pending',
+      createdAt: new Date().toISOString()
+    };
+
+    db.orders[orderId] = order;
+    if (db.users[req.userId]) {
+      if (!db.users[req.userId].orders) db.users[req.userId].orders = [];
+      db.users[req.userId].orders.push(order);
+    }
+    writeDB(db);
+    return res.status(201).json({ success: true, order });
+  } catch (e) {
+    console.error('Order error:', e);
+    return res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// ════════════════════════════════════════════
+//  ADMIN  /api/admin/...
+// ════════════════════════════════════════════
+
+app.get('/api/admin/stats', authMiddleware, adminMiddleware, (req, res) => {
+  try {
+    const db = readDB();
+    const orders = Object.values(db.orders || {});
+    const users  = Object.values(db.users  || {}).filter(u => u.role !== 'admin');
+    return res.json({
+      success: true,
+      stats: {
+        totalRevenue:  orders.reduce((s, o) => s + (o.totalAmount || 0), 0),
+        totalOrders:   orders.length,
+        totalUsers:    users.length,
+        pendingOrders: orders.filter(o => o.orderStatus === 'pending').length
+      }
+    });
+  } catch (e) {
+    return res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+app.get('/api/admin/orders', authMiddleware, adminMiddleware, (req, res) => {
+  try {
+    const db = readDB();
+    const orders = Object.values(db.orders || {}).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    return res.json({ success: true, orders });
+  } catch (e) {
+    return res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+app.put('/api/admin/orders/:id/status', authMiddleware, adminMiddleware, (req, res) => {
+  try {
+    const db = readDB();
+    const order = db.orders[req.params.id];
+    if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
+    order.orderStatus = req.body.status;
+    writeDB(db);
+    return res.json({ success: true, order });
+  } catch (e) {
+    return res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+app.get('/api/admin/users', authMiddleware, adminMiddleware, (req, res) => {
+  try {
+    const db = readDB();
+    const users = Object.values(db.users || {}).map(u => {
+      const { password: _, ...safe } = u;
+      return { ...safe, ordersCount: (u.orders || []).length };
+    });
+    return res.json({ success: true, users });
+  } catch (e) {
+    return res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// ── Start ─────────────────────────────────────────────────
+app.listen(PORT, () => console.log(`✅ Haj Server شغال على port ${PORT}`));
