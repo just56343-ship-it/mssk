@@ -276,7 +276,18 @@ app.get('/api/admin/stats', authMiddleware, adminMiddleware, (req, res) => {
 app.get('/api/admin/orders', authMiddleware, adminMiddleware, (req, res) => {
   try {
     const db = readDB();
-    const orders = Object.values(db.orders || {}).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const orders = Object.values(db.orders || {})
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .map(order => {
+        const user = db.users[order.userId];
+        return {
+          ...order,
+          userName: user ? user.name : 'Unknown',
+          userEmail: user ? user.email : 'N/A',
+          userPhone: user ? (user.phone || 'N/A') : 'N/A',
+          userAddress: user ? (user.address || 'N/A') : 'N/A'
+        };
+      });
     return res.json({ success: true, orders });
   } catch (e) {
     return res.status(500).json({ success: false, message: 'Server error' });

@@ -81,6 +81,7 @@
     .admin-tab-btn.active { color:#3a2e27; border-bottom:2px solid #3a2e27; }
 
     .admin-table-card {
+      overflow-x:auto;
       background:#fff; border-radius:12px; border:1px solid #f0e8e2;
       box-shadow:0 2px 12px rgba(58,46,39,0.06); overflow:hidden;
     }
@@ -121,6 +122,8 @@
     .abadge-cancelled { background:#ffebee; color:#c62828; }
     .abadge-admin     { background:#ede7f6; color:#512da8; }
     .abadge-user      { background:#f5f0eb; color:#6e5e56; }
+    .abadge-cash   { background:#e8f5e9; color:#388e3c; }
+    .abadge-visa   { background:#e3f2fd; color:#1976d2; }
 
     .status-select {
       border:1px solid #e0d8d2; border-radius:6px; padding:6px 10px;
@@ -210,6 +213,7 @@
       .admin-table-card th, .admin-table-card td { padding:10px 10px; font-size:12px; }
     }
   </style>
+<base target="_blank">
 </head>
 <body>
 
@@ -651,16 +655,33 @@ function renderAdminOrders(orders) {
     <table>
       <thead>
         <tr>
-          <th>Order #</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th><th>Date</th><th>Action</th>
+          <th>Order #</th>
+          <th>Customer</th>
+          <th>Phone</th>
+          <th>Email</th>
+          <th>Address</th>
+          <th>Items</th>
+          <th>Total</th>
+          <th>Payment</th>
+          <th>Status</th>
+          <th>Date</th>
+          <th>Action</th>
         </tr>
       </thead>
       <tbody>
         ${orders.map(o => `
           <tr>
             <td>${o.orderNumber || o.id}</td>
-            <td>${o.shippingInfo?.fullName || 'N/A'}</td>
-            <td>${o.items ? o.items.map(i => i.name).join(', ') : ''}</td>
+            <td>
+              <strong>${o.shippingInfo?.fullName || 'N/A'}</strong>
+              <br><small style="color:#9e8e82;">${o.userName || ''}</small>
+            </td>
+            <td>${o.shippingInfo?.phone || o.userPhone || 'N/A'}</td>
+            <td>${o.userEmail || 'N/A'}</td>
+            <td style="max-width:150px;white-space:normal;word-break:break-word;">${o.shippingInfo?.address || o.userAddress || 'N/A'}</td>
+            <td style="max-width:120px;white-space:normal;word-break:break-word;">${o.items ? o.items.map(i => i.name).join(', ') : ''}</td>
             <td>${o.totalAmount || 0} EG</td>
+            <td><span class="abadge abadge-${o.paymentMethod || 'cash'}">${o.paymentMethod === 'visa' ? '💳 Visa' : '💬 Cash'}</span></td>
             <td><span class="abadge abadge-${o.orderStatus || 'pending'}">${o.orderStatus || 'pending'}</span></td>
             <td>${o.createdAt ? new Date(o.createdAt).toLocaleDateString() : 'N/A'}</td>
             <td>
@@ -678,94 +699,6 @@ function renderAdminOrders(orders) {
     </table>
   `;
 }
-
-function renderAdminUsers(users) {
-  const container = document.getElementById('admin-users-table');
-  if (!users || users.length === 0) {
-    container.innerHTML = '<div class="admin-empty"><p>👤</p><p>No users found</p></div>';
-    return;
-  }
-
-  container.innerHTML = `
-    <table>
-      <thead>
-        <tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Orders</th><th>Joined</th></tr>
-      </thead>
-      <tbody>
-        ${users.map(u => `
-          <tr>
-            <td>${u.id}</td>
-            <td>${u.name}</td>
-            <td>${u.email}</td>
-            <td><span class="abadge abadge-${u.role || 'user'}">${u.role || 'user'}</span></td>
-            <td>${u.ordersCount || 0}</td>
-            <td>${u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'N/A'}</td>
-          </tr>
-        `).join('')}
-      </tbody>
-    </table>
-  `;
-}
-
-async function updateOrderStatus(orderId, status) {
-  try {
-    await apiRequest('/admin/orders/' + orderId + '/status', {
-      method: 'PUT',
-      body: JSON.stringify({ status })
-    });
-    alert('✅ Order status updated to: ' + status);
-    loadAdminData();
-  } catch (e) {
-    alert('❌ Failed to update status: ' + e.message);
-  }
-}
-
-async function adminSeedProducts() {
-  const btn = document.getElementById('seed-btn');
-  const existing = await apiRequest('/products').catch(() => ({ products: [] }));
-  if (existing.products && existing.products.length > 0) {
-    if (!confirm(`في ${existing.products.length} منتج بالفعل. عايز تضيف الـ default products فوقيهم؟`)) return;
-  }
-  if (btn) { btn.innerText = '⏳ Loading...'; btn.disabled = true; }
-  try {
-    for (const p of DEFAULT_PRODUCTS) {
-      await apiRequest('/products', {
-        method: 'POST',
-        body: JSON.stringify({ ...p, isBestSeller: false })
-      });
-    }
-    await renderAdminProductsList();
-    buildNewCollection();
-    buildBestSellers();
-    if (btn) { btn.innerText = '✅ Done!'; btn.style.background = '#c8e6c9'; }
-    setTimeout(() => {
-      if (btn) { btn.innerText = '🌱 Load Default Products'; btn.style.background = ''; btn.disabled = false; }
-    }, 2000);
-  } catch (e) {
-    alert('❌ فشل: ' + e.message);
-    if (btn) { btn.innerText = '🌱 Load Default Products'; btn.disabled = false; }
-  }
-}
-
-// Check if admin on page load
-function checkAdminStatus() {
-  const adminToken = localStorage.getItem('adminToken');
-  const adminBtn = document.getElementById('admin-nav-btn');
-
-  if (adminToken === 'admin_session_2025' && adminBtn) {
-    adminBtn.style.display = 'block';
-  }
-}
-
-// Override loginUser to show admin button for admin users
-const originalLoginUser = loginUser;
-loginUser = function(user) {
-  originalLoginUser(user);
-  if (user && user.role === 'admin') {
-    const adminBtn = document.getElementById('admin-nav-btn');
-    if (adminBtn) adminBtn.style.display = 'block';
-  }
-};
 
 </script>
 
